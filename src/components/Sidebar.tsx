@@ -36,7 +36,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full bg-calume-navy text-white w-64">
       <div className="flex items-center justify-between px-4 py-5 border-b border-white/10">
-        <Image src="/brand/calume-logo.png" alt="Calume" width={140} height={32} priority />
+        <Image src="/brand/calume-logo.png" alt="Calume Desarrollos" width={155} height={50} priority />
         <button className="lg:hidden text-white/70" onClick={onNavigate} aria-label="Cerrar menú">
           <X size={20} />
         </button>
