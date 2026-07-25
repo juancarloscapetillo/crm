@@ -30,7 +30,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-calume-navy px-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
-          <Image src="/brand/calume-logo.png" alt="Calume Desarrollos" width={248} height={80} priority />
+          <Image src="/brand/calume-logo.png" alt="Calume Desarrollos" width={260} height={65} priority />
         </div>
         <div className="card p-8">
           <h1 className="text-lg font-semibold text-gray-900 mb-1">Iniciar sesión</h1>
