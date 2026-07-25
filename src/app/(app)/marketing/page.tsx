@@ -8,17 +8,10 @@ import { useFetch, useCatalogs } from "@/lib/hooks";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/labels";
 
 const emptyForm = {
+  campaign: "",
+  amount: "",
   date: new Date().toISOString().slice(0, 10),
   projectId: "",
-  campaign: "",
-  channel: "",
-  provider: "",
-  amount: "",
-  description: "",
-  leadsGenerated: "",
-  visitsGenerated: "",
-  salesAttributed: "",
-  revenueAttributed: "",
 };
 
 export default function MarketingPage() {
@@ -51,8 +44,8 @@ export default function MarketingPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.campaign.trim() || !form.channel.trim() || !form.amount) {
-      toast.error("Campaña, canal y monto son obligatorios");
+    if (!form.campaign.trim() || !form.amount) {
+      toast.error("Concepto y monto son obligatorios");
       return;
     }
     setSaving(true);
@@ -89,7 +82,7 @@ export default function MarketingPage() {
         subtitle="Captura tu inversión por campaña y canal para calcular CAC y retorno"
         actions={
           <button className="btn-gold" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Nuevo registro
+            <Plus size={16} /> Nuevo egreso
           </button>
         }
       />
@@ -115,7 +108,7 @@ export default function MarketingPage() {
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
               <tr>
                 <th className="text-left px-3 py-2">Fecha</th>
-                <th className="text-left px-3 py-2">Campaña</th>
+                <th className="text-left px-3 py-2">Concepto</th>
                 <th className="text-left px-3 py-2">Canal</th>
                 <th className="text-left px-3 py-2">Proyecto</th>
                 <th className="text-right px-3 py-2">Invertido</th>
@@ -133,7 +126,7 @@ export default function MarketingPage() {
                   <td className="px-3 py-2">
                     {r.campaign} {r.isDemo && <DemoBadge />}
                   </td>
-                  <td className="px-3 py-2 text-gray-500">{r.channel}</td>
+                  <td className="px-3 py-2 text-gray-500">{r.channel || "—"}</td>
                   <td className="px-3 py-2 text-gray-500">{r.project?.name || "—"}</td>
                   <td className="px-3 py-2 text-right">{formatCurrency(r.amount)}</td>
                   <td className="px-3 py-2 text-right">{r.leadsGenerated}</td>
@@ -154,8 +147,16 @@ export default function MarketingPage() {
         </div>
       </div>
 
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo registro de inversión" wide>
-        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo egreso">
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <label className="label">Concepto *</label>
+            <input className="input" value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} placeholder="Ej. Publicidad Facebook Ads" required />
+          </div>
+          <div>
+            <label className="label">Monto *</label>
+            <input type="number" className="input" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+          </div>
           <div>
             <label className="label">Fecha *</label>
             <input type="date" className="input" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
@@ -169,45 +170,9 @@ export default function MarketingPage() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="label">Campaña *</label>
-            <input className="input" value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} required />
-          </div>
-          <div>
-            <label className="label">Canal *</label>
-            <input className="input" value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="Facebook Ads, Google Ads..." required />
-          </div>
-          <div>
-            <label className="label">Proveedor / agencia</label>
-            <input className="input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Monto invertido *</label>
-            <input type="number" className="input" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-          </div>
-          <div>
-            <label className="label">Leads generados</label>
-            <input type="number" className="input" value={form.leadsGenerated} onChange={(e) => setForm({ ...form, leadsGenerated: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Visitas generadas</label>
-            <input type="number" className="input" value={form.visitsGenerated} onChange={(e) => setForm({ ...form, visitsGenerated: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Ventas atribuidas</label>
-            <input type="number" className="input" value={form.salesAttributed} onChange={(e) => setForm({ ...form, salesAttributed: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Ingreso atribuido</label>
-            <input type="number" className="input" value={form.revenueAttributed} onChange={(e) => setForm({ ...form, revenueAttributed: e.target.value })} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="label">Descripción</label>
-            <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          </div>
-          <div className="sm:col-span-2 flex justify-end">
+          <div className="flex justify-end">
             <button type="submit" disabled={saving} className="btn-gold">
-              {saving ? "Guardando..." : "Guardar registro"}
+              {saving ? "Guardando..." : "Guardar egreso"}
             </button>
           </div>
         </form>

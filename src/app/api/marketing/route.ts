@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
     const body = await req.json();
-    if (!body.campaign?.trim() || !body.channel?.trim() || !body.amount) {
-      return jsonError("Campaña, canal y monto invertido son obligatorios");
+    if (!body.campaign?.trim() || !body.amount) {
+      return jsonError("Concepto y monto son obligatorios");
     }
     const record = await prisma.marketingInvestment.create({
       data: {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         date: body.date ? new Date(body.date) : new Date(),
         projectId: body.projectId || null,
         campaign: body.campaign.trim(),
-        channel: body.channel.trim(),
+        channel: body.channel?.trim() || null,
         provider: body.provider || null,
         amount: Number(body.amount),
         description: body.description || null,
