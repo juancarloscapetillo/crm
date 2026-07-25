@@ -3,23 +3,37 @@
 import { AlertStatus, alertColors, alertLabel } from "@/lib/alert";
 import { Stage } from "@prisma/client";
 import { stageColors, stageLabels } from "@/lib/labels";
-import { X } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 
 export function PageHeader({
   title,
   subtitle,
   actions,
+  onBack,
 }: {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
+  onBack?: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 px-4 sm:px-6 py-5 border-b border-gray-200 bg-white">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+      <div className="flex items-start gap-3">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="btn-secondary mt-0.5 flex-shrink-0"
+            title="Atrás"
+            aria-label="Atrás"
+          >
+            <ArrowLeft size={16} /> Atrás
+          </button>
+        )}
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        </div>
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>

@@ -38,6 +38,14 @@ export default function ProspectProfilePage() {
 
   const prospect = data?.prospect;
 
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/pipeline");
+    }
+  }
+
   async function toggleFavorite() {
     const res = await fetch(`/api/prospects/${id}/favorite`, { method: "POST" });
     if (res.ok) {
@@ -162,6 +170,7 @@ export default function ProspectProfilePage() {
       <PageHeader
         title={prospect.name}
         subtitle={`Ingresó el ${formatDate(prospect.entryDate)} · Fuente: ${sourceLabels[prospect.sourceType as keyof typeof sourceLabels]}`}
+        onBack={handleBack}
         actions={
           <div className="flex items-center gap-2">
             <button onClick={toggleFavorite} className="btn-secondary" title="Favorito">
