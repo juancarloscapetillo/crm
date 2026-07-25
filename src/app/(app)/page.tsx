@@ -5,12 +5,13 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts";
+import { Download, FileSpreadsheet, Printer } from "lucide-react";
 import { PageHeader, StatCard, EmptyState } from "@/components/ui";
 import FilterBar, { Filters } from "@/components/FilterBar";
 import { useCatalogs, useFetch } from "@/lib/hooks";
 import { toQueryString } from "@/lib/queryString";
 import { formatCurrency, formatPercent } from "@/lib/labels";
-import { Users, TrendingUp, AlertTriangle } from "lucide-react";
+import { exportToCSV, exportToExcel } from "@/lib/export";
 
 const PIE_COLORS = ["#253574", "#F6B436", "#5B8DEF", "#9B6FD9", "#3FBE7A", "#E15B5B", "#F0B429"];
 
@@ -33,12 +34,51 @@ export default function DashboardPage() {
   const { tags, projects, users } = useCatalogs();
   const qs = toQueryString(filters as any);
   const { data, loading } = useFetch<DashboardData>(`/api/dashboard${qs}`, [qs]);
+  const { data: reportData, loading: reportLoading } = useFetch<any>(`/api/reports${qs}`, [qs]);
+
+  function handleExportExcel() {
+    if (!reportData) return;
+    exportToExcel("calume-reportes", [
+      { name: "Resumen", rows: [reportData.summary] },
+      { name: "Por etapa", rows: reportData.byStage },
+      { name: "Motivos de pérdida", rows: reportData.lossReasons },
+      { name: "Por vendedor", rows: reportData.byVendor },
+      { name: "Por asesor", rows: reportData.byAdvisor },
+      { name: "Por empresa", rows: reportData.byCompany },
+      { name: "Por tag", rows: reportData.byTag },
+      { name: "Por canal", rows: reportData.byChannel },
+      { name: "Marketing por periodo", rows: reportData.byPeriod },
+      { name: "Productividad", rows: reportData.productivity },
+    ]);
+  }
+
+  function handlePrint() {
+    window.print();
+  }
 
   return (
     <div>
-      <PageHeader title="Dashboard ejecutivo" subtitle="Visión general del embudo comercial de Calume" />
+      <PageHeader
+        title="Dashboard"
+        subtitle="Visión general del embudo comercial y reportes exportables de Calume"
+        actions={
+          <div className="flex gap-2 no-print">
+            <button className="btn-secondary" onClick={() => reportData && exportToCSV("calume-resumen", [reportData.summary])}>
+              <Download size={15} /> CSV
+            </button>
+            <button className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={15} /> Excel
+            </button>
+            <button className="btn-secondary" onClick={handlePrint}>
+              <Printer size={15} /> Imprimir / PDF
+            </button>
+          </div>
+        }
+      />
       <div className="p-4 sm:p-6 space-y-6">
-        <FilterBar filters={filters} onChange={setFilters} users={users} tags={tags} projects={projects} />
+        <div className="no-print">
+          <FilterBar filters={filters} onChange={setFilters} users={users} tags={tags} projects={projects} />
+        </div>
 
         {loading && <p className="text-sm text-gray-500">Cargando indicadores...</p>}
 
@@ -65,6 +105,13 @@ export default function DashboardPage() {
                 accent="red"
                 hint="72h o más sin movimiento"
               />
+              {reportData && (
+                <>
+                  <StatCard label="Valor del pipeline" value={formatCurrency(reportData.summary.valorPipeline)} />
+                  <StatCard label="Tiempo promedio de cierre" value={reportData.summary.avgCloseTimeDays !== null ? `${reportData.summary.avgCloseTimeDays.toFixed(1)} días` : "Datos insuficientes"} />
+                  <StatCard label="Tiempo promedio sin seguimiento" value={reportData.summary.avgNoFollowHours !== null ? `${reportData.summary.avgNoFollowHours.toFixed(0)} h` : "Datos insuficientes"} />
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -142,7 +189,96 @@ export default function DashboardPage() {
             </div>
           </>
         )}
+
+        {reportLoading && <p className="text-sm text-gray-500">Calculando reportes...</p>}
+
+        {reportData && (
+          <>
+            <ReportTable
+              title="Prospectos por etapa"
+              columns={["Etapa", "Prospectos"]}
+              rows={reportData.byStage.map((r: any) => [r.stage, r.count])}
+            />
+
+            <ReportTable
+              title="Motivos de pérdida"
+              columns={["Motivo", "Prospectos"]}
+              rows={reportData.lossReasons.map((r: any) => [r.reason, r.count])}
+              empty="No hay prospectos perdidos en este periodo"
+            />
+
+            <ReportTable
+              title="Conversión por vendedor"
+              columns={["Vendedor", "Total", "Ganados", "Conversión", "Valor ganado"]}
+              rows={reportData.byVendor.map((r: any) => [r.name, r.total, r.won, formatPercent(r.conversion), formatCurrency(r.value)])}
+            />
+
+            <ReportTable
+              title="Conversión por asesor externo"
+              columns={["Asesor", "Empresa", "Total", "Ganados", "Conversión", "Valor ganado"]}
+              rows={reportData.byAdvisor.map((r: any) => [r.name, r.company, r.total, r.won, formatPercent(r.conversion), formatCurrency(r.value)])}
+              empty="No hay prospectos de asesores externos en este periodo"
+            />
+
+            <ReportTable
+              title="Conversión por empresa inmobiliaria"
+              columns={["Empresa", "Total", "Ganados", "Conversión", "Valor ganado"]}
+              rows={reportData.byCompany.map((r: any) => [r.name, r.total, r.won, formatPercent(r.conversion), formatCurrency(r.value)])}
+              empty="No hay prospectos vinculados a empresas en este periodo"
+            />
+
+            <ReportTable
+              title="Conversión por tag"
+              columns={["Tag", "Total", "Ganados", "Conversión"]}
+              rows={reportData.byTag.map((r: any) => [`#${r.name}`, r.total, r.won, formatPercent(r.conversion)])}
+            />
+
+            <ReportTable
+              title="Conversión por canal"
+              columns={["Canal", "Total", "Ganados", "Conversión"]}
+              rows={reportData.byChannel.map((r: any) => [r.name, r.total, r.won, formatPercent(r.conversion)])}
+            />
+
+            <ReportTable
+              title="Inversión y CAC por periodo"
+              columns={["Periodo", "Inversión", "Leads", "Ventas", "CAC"]}
+              rows={reportData.byPeriod.map((r: any) => [r.period, formatCurrency(r.amount), r.leads, r.sales, r.cac !== null ? formatCurrency(r.cac) : "Datos insuficientes"])}
+            />
+
+            <ReportTable
+              title="Productividad por vendedor"
+              columns={["Vendedor", "Prospectos asignados", "Ganados", "Actividades registradas"]}
+              rows={reportData.productivity.map((r: any) => [r.name, r.prospectsAssigned, r.won, r.activities])}
+            />
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+function ReportTable({ title, columns, rows, empty }: { title: string; columns: string[]; rows: any[][]; empty?: string }) {
+  return (
+    <div className="card p-4 break-inside-avoid">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">{title}</h3>
+      {rows.length === 0 ? (
+        <p className="text-xs text-gray-400">{empty || "Sin datos para este periodo"}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+              <tr>{columns.map((c) => <th key={c} className="text-left px-3 py-2">{c}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => <td key={j} className="px-3 py-1.5">{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

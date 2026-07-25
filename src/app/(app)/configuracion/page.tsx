@@ -5,12 +5,14 @@ import { useState } from "react";
 import { PageHeader } from "@/components/ui";
 import TagsSection from "./TagsSection";
 import ProjectsSection from "./ProjectsSection";
+import EmpresasSection from "./EmpresasSection";
 import UsersSection from "./UsersSection";
 import DemoDataSection from "./DemoDataSection";
 
 const tabs = [
   { key: "tags", label: "Tags" },
   { key: "proyectos", label: "Proyectos" },
+  { key: "empresas", label: "Empresas" },
   { key: "usuarios", label: "Usuarios" },
   { key: "demo", label: "Datos demostrativos" },
 ];
@@ -43,6 +45,7 @@ export default function ConfiguracionPage() {
 
         {tab === "tags" && <TagsSection />}
         {tab === "proyectos" && <ProjectsSection />}
+        {tab === "empresas" && <EmpresasSection />}
         {tab === "usuarios" && isAdmin && <UsersSection />}
         {tab === "demo" && <DemoDataSection isAdmin={isAdmin} />}
       </div>

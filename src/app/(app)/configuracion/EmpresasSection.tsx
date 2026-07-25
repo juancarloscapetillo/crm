@@ -4,11 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Plus, Building2 } from "lucide-react";
-import { PageHeader, Modal, EmptyState } from "@/components/ui";
+import { Modal, EmptyState } from "@/components/ui";
 import { useFetch } from "@/lib/hooks";
-import { formatCurrency, formatPercent } from "@/lib/labels";
+import { formatPercent } from "@/lib/labels";
 
-export default function EmpresasPage() {
+export default function EmpresasSection() {
   const { data, loading, reload } = useFetch<{ companies: any[] }>("/api/companies");
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ commercialName: "", legalName: "", contactName: "", phone: "", email: "", address: "" });
@@ -41,47 +41,46 @@ export default function EmpresasPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Empresas inmobiliarias"
-        subtitle="Alianzas comerciales y empresas de asesores externos"
-        actions={
-          <button className="btn-gold" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Nueva empresa
-          </button>
-        }
-      />
-      <div className="p-4 sm:p-6">
-        {loading && <p className="text-sm text-gray-500">Cargando...</p>}
-        {!loading && companies.length === 0 && (
-          <EmptyState icon={<Building2 size={40} />} title="Aún no hay empresas registradas" description="Registra las inmobiliarias con las que colabora Calume." />
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {companies.map((c) => (
-            <Link key={c.id} href={`/empresas/${c.id}`} className="card p-4 hover:shadow-popover transition-shadow">
-              <div className="flex items-start justify-between">
-                <h3 className="font-medium text-gray-900">{c.commercialName}</h3>
-                <span className={`badge ${c.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                  {c.active ? "Activa" : "Inactiva"}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">{c.contactName || "Sin contacto principal"}</p>
-              <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-                <div>
-                  <div className="text-sm font-semibold text-calume-navy">{c.advisorCount}</div>
-                  <div className="text-[10px] text-gray-400">Asesores</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-calume-navy">{c.prospectCount}</div>
-                  <div className="text-[10px] text-gray-400">Prospectos</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-calume-navy">{formatPercent(c.conversion)}</div>
-                  <div className="text-[10px] text-gray-400">Conversión</div>
-                </div>
-              </div>
-            </Link>
-          ))}
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Empresas inmobiliarias</h3>
+          <p className="text-xs text-gray-500">Alianzas comerciales y empresas de asesores externos</p>
         </div>
+        <button className="btn-gold text-xs" onClick={() => setShowCreate(true)}>
+          <Plus size={14} /> Nueva empresa
+        </button>
+      </div>
+
+      {loading && <p className="text-sm text-gray-500">Cargando...</p>}
+      {!loading && companies.length === 0 && (
+        <EmptyState icon={<Building2 size={40} />} title="Aún no hay empresas registradas" description="Registra las inmobiliarias con las que colabora Calume." />
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {companies.map((c) => (
+          <Link key={c.id} href={`/empresas/${c.id}`} className="card p-4 hover:shadow-popover transition-shadow">
+            <div className="flex items-start justify-between">
+              <h3 className="font-medium text-gray-900">{c.commercialName}</h3>
+              <span className={`badge ${c.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                {c.active ? "Activa" : "Inactiva"}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{c.contactName || "Sin contacto principal"}</p>
+            <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+              <div>
+                <div className="text-sm font-semibold text-calume-navy">{c.advisorCount}</div>
+                <div className="text-[10px] text-gray-400">Asesores</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-calume-navy">{c.prospectCount}</div>
+                <div className="text-[10px] text-gray-400">Prospectos</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-calume-navy">{formatPercent(c.conversion)}</div>
+                <div className="text-[10px] text-gray-400">Conversión</div>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nueva empresa">

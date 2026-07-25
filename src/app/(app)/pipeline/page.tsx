@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCorners, DragStartEvent, DragEndEvent,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import toast from "react-hot-toast";
-import { PageHeader } from "@/components/ui";
+import { Plus } from "lucide-react";
+import { PageHeader, Modal } from "@/components/ui";
+import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
 import { useFetch, useTick } from "@/lib/hooks";
 import { pipelineStages, stageLabels, stageColors, formatCurrency } from "@/lib/labels";
@@ -37,11 +40,34 @@ function DraggableCard({ prospect, onFavoriteToggle }: { prospect: ProspectCardD
 }
 
 export default function PipelinePage() {
+  const router = useRouter();
   const { data, loading, reload } = useFetch<{ prospects: ProspectCardData[] }>("/api/prospects");
   useTick();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localOverride, setLocalOverride] = useState<Record<string, Stage>>({});
+  const [showCreate, setShowCreate] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  async function handleCreate(values: ProspectFormValues) {
+    const res = await fetch("/api/prospects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...values,
+        budget: values.budget || null,
+        estimatedValue: values.estimatedValue || null,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error);
+    }
+    const { prospect } = await res.json();
+    toast.success("Prospecto creado");
+    setShowCreate(false);
+    reload();
+    router.push(`/prospectos/${prospect.id}`);
+  }
 
   const prospects = (data?.prospects || []).map((p) => (localOverride[p.id] ? { ...p, stage: localOverride[p.id] } : p)) as (ProspectCardData & { stage: Stage; stageEnteredAt: string; estimatedValue: number | null })[];
 
@@ -100,7 +126,15 @@ export default function PipelinePage() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title="Pipeline de ventas" subtitle="Arrastra las tarjetas para mover a los prospectos entre etapas" />
+      <PageHeader
+        title="Pipeline de ventas"
+        subtitle="Arrastra las tarjetas para mover a los prospectos entre etapas"
+        actions={
+          <button className="btn-gold" onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> Nuevo prospecto
+          </button>
+        }
+      />
       <div className="flex-1 overflow-x-auto p-4 sm:p-6">
         {loading && <p className="text-sm text-gray-500">Cargando pipeline...</p>}
         {!loading && (
@@ -147,6 +181,10 @@ export default function PipelinePage() {
           </DndContext>
         )}
       </div>
+
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo prospecto" wide>
+        <ProspectForm onSubmit={handleCreate} submitLabel="Crear prospecto" />
+      </Modal>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export default function Topbar({ userName, role }: { userName: string; role: str
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <div className="absolute left-0 top-0 h-full">
-            <Sidebar onNavigate={() => setMobileOpen(false)} />
+            <Sidebar onNavigate={() => setMobileOpen(false)} forceExpanded />
           </div>
         </div>
       )}

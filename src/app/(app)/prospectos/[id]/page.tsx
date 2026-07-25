@@ -90,7 +90,7 @@ export default function ProspectProfilePage() {
       return;
     }
     toast.success("Prospecto eliminado");
-    router.push("/prospectos");
+    router.push("/pipeline");
   }
 
   async function submitActivity(e: React.FormEvent) {
