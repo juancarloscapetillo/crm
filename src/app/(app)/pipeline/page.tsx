@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import toast from "react-hot-toast";
-import { Plus } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import { PageHeader, Modal } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
@@ -17,9 +17,10 @@ import { Stage } from "@prisma/client";
 import { hoursSince } from "@/lib/alert";
 
 const kanbanStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+const FAVORITES_ID = "FAVORITOS";
 
-function DroppableColumn({ stage, children }: { stage: Stage; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({ id: stage });
+function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
   return (
     <div ref={setNodeRef} className={`flex-1 min-w-[280px] rounded-xl2 p-2 transition-colors ${isOver ? "bg-calume-navy/5" : ""}`}>
       {children}
@@ -80,6 +81,8 @@ export default function PipelinePage() {
     return map;
   }, [prospects]);
 
+  const favoriteItems = useMemo(() => prospects.filter((p) => (p as any).isFavorite), [prospects]);
+
   function handleDragStart(e: DragStartEvent) {
     setActiveId(e.active.id as string);
   }
@@ -89,9 +92,20 @@ export default function PipelinePage() {
     const { active, over } = e;
     if (!over) return;
     const prospectId = active.id as string;
-    const newStage = over.id as Stage;
     const current = prospects.find((p) => p.id === prospectId);
-    if (!current || (current as any).stage === newStage) return;
+    if (!current) return;
+
+    if (over.id === FAVORITES_ID) {
+      if ((current as any).isFavorite) return;
+      const res = await fetch(`/api/prospects/${prospectId}/favorite`, { method: "POST" });
+      if (!res.ok) toast.error("No se pudo agregar a favoritos");
+      else toast.success("Agregado a favoritos");
+      reload();
+      return;
+    }
+
+    const newStage = over.id as Stage;
+    if ((current as any).stage === newStage) return;
 
     if (newStage === "PERDIDO") {
       const reason = window.prompt("Motivo de pérdida (opcional):") || "";
@@ -140,6 +154,24 @@ export default function PipelinePage() {
         {!loading && (
           <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex gap-3 min-h-[70vh]">
+              <DroppableColumn id={FAVORITES_ID}>
+                <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold flex items-center gap-1.5 text-calume-gold">
+                      <Star size={14} className="fill-calume-gold" /> Favoritos
+                    </h3>
+                    <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{favoriteItems.length}</span>
+                  </div>
+                  <div className="text-[11px] text-gray-400 mt-1">No es una etapa: solo un acceso rápido</div>
+                </div>
+                <div className="min-h-[100px]">
+                  {favoriteItems.map((p: any) => (
+                    <div key={p.id} className="mb-2">
+                      <ProspectCard prospect={p} onFavoriteToggle={reload} />
+                    </div>
+                  ))}
+                </div>
+              </DroppableColumn>
               {kanbanStages.map((stage) => {
                 const items = grouped[stage] || [];
                 const totalValue = items.reduce((s, p: any) => s + (p.estimatedValue || p.budget || 0), 0);
@@ -150,7 +182,7 @@ export default function PipelinePage() {
                 const alertCount = items.filter((p: any) => p.alertStatus === "yellow" || p.alertStatus === "red").length;
 
                 return (
-                  <DroppableColumn key={stage} stage={stage}>
+                  <DroppableColumn key={stage} id={stage}>
                     <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-semibold" style={{ color: stageColors[stage] }}>

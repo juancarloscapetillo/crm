@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Kanban,
-  Star,
   ListChecks,
   UserCog,
   Megaphone,
@@ -20,7 +19,6 @@ import {
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
-  { href: "/favoritos", label: "Favoritos", icon: Star },
   { href: "/tareas", label: "Tareas y seguimientos", icon: ListChecks },
   { href: "/asesores", label: "Asesores", icon: UserCog },
   { href: "/marketing", label: "Marketing", icon: Megaphone },
