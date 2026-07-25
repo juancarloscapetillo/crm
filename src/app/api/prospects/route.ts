@@ -25,6 +25,9 @@ function buildWhere(searchParams: URLSearchParams, userId: string, role: string)
   const project = searchParams.get("project");
   if (project) and.push({ projectId: project });
 
+  const advisor = searchParams.get("advisor");
+  if (advisor) and.push({ advisorId: advisor });
+
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   if (from || to) {
@@ -125,7 +128,7 @@ export async function POST(req: NextRequest) {
         notes: body.notes || null,
         nextAction: body.nextAction || null,
         nextActionDate: body.nextActionDate ? new Date(body.nextActionDate) : null,
-        stage: "INFORMES",
+        stage: "SIN_CONTACTAR",
         stageEnteredAt: now,
         lastActivityAt: now,
         entryDate: now,

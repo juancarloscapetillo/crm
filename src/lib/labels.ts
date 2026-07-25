@@ -1,6 +1,7 @@
 import { Stage, SourceType, ActivityType, Role } from "@prisma/client";
 
 export const stageLabels: Record<Stage, string> = {
+  SIN_CONTACTAR: "🆕 Sin contactar",
   INFORMES: "📥 Informes",
   VISITA: "📅 Visita",
   NEGOCIACION: "🤝 Negociación",
@@ -8,10 +9,11 @@ export const stageLabels: Record<Stage, string> = {
   PERDIDO: "❌ Perdido",
 };
 
-export const stageOrder: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
-export const pipelineStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+export const stageOrder: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+export const pipelineStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
 
 export const stageColors: Record<Stage, string> = {
+  SIN_CONTACTAR: "#9CA3AF",
   INFORMES: "#5B8DEF",
   VISITA: "#F6B436",
   NEGOCIACION: "#9B6FD9",

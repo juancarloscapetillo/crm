@@ -7,17 +7,34 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import toast from "react-hot-toast";
-import { Plus, Star } from "lucide-react";
+import { Plus, Star, X } from "lucide-react";
 import { PageHeader, Modal } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
-import { useFetch, useTick } from "@/lib/hooks";
+import { useFetch, useTick, useCatalogs } from "@/lib/hooks";
 import { pipelineStages, stageLabels, stageColors, formatCurrency } from "@/lib/labels";
+import { toQueryString } from "@/lib/queryString";
 import { Stage } from "@prisma/client";
 import { hoursSince } from "@/lib/alert";
 
-const kanbanStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+const kanbanStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
 const FAVORITES_ID = "FAVORITOS";
+
+const sourceOptions = [
+  { value: "DIRECTO", label: "Venta directa" },
+  { value: "ASESOR_EXTERNO", label: "Asesor externo" },
+  { value: "COMUNIDAD", label: "Comunidad / Alianza" },
+  { value: "REFERIDO", label: "Referido" },
+  { value: "CAMPANA", label: "Campaña de marketing" },
+];
+
+type PipelineFilters = {
+  project?: string;
+  tag?: string;
+  advisor?: string;
+  vendedor?: string;
+  source?: string;
+};
 
 function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -42,12 +59,16 @@ function DraggableCard({ prospect, onFavoriteToggle }: { prospect: ProspectCardD
 
 export default function PipelinePage() {
   const router = useRouter();
-  const { data, loading, reload } = useFetch<{ prospects: ProspectCardData[] }>("/api/prospects");
+  const [filters, setFilters] = useState<PipelineFilters>({});
+  const qs = toQueryString(filters as any);
+  const { data, loading, reload } = useFetch<{ prospects: ProspectCardData[] }>(`/api/prospects${qs}`);
+  const { projects, tags, advisors, users } = useCatalogs();
   useTick();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localOverride, setLocalOverride] = useState<Record<string, Stage>>({});
   const [showCreate, setShowCreate] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.vendedor || filters.source);
 
   async function handleCreate(values: ProspectFormValues) {
     const res = await fetch("/api/prospects", {
@@ -149,6 +170,60 @@ export default function PipelinePage() {
           </button>
         }
       />
+      <div className="px-4 sm:px-6 pt-4">
+        <div className="flex flex-wrap items-end gap-3 bg-white border border-gray-200 rounded-xl2 p-3">
+          <div>
+            <label className="label">Proyecto</label>
+            <select className="input" value={filters.project || ""} onChange={(e) => setFilters((f) => ({ ...f, project: e.target.value || undefined }))}>
+              <option value="">Todos</option>
+              {projects.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Tag</label>
+            <select className="input" value={filters.tag || ""} onChange={(e) => setFilters((f) => ({ ...f, tag: e.target.value || undefined }))}>
+              <option value="">Todos</option>
+              {tags.map((t: any) => (
+                <option key={t.id} value={t.id}>#{t.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Asesor externo</label>
+            <select className="input" value={filters.advisor || ""} onChange={(e) => setFilters((f) => ({ ...f, advisor: e.target.value || undefined }))}>
+              <option value="">Todos</option>
+              {advisors.map((a: any) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Vendedor</label>
+            <select className="input" value={filters.vendedor || ""} onChange={(e) => setFilters((f) => ({ ...f, vendedor: e.target.value || undefined }))}>
+              <option value="">Todos</option>
+              {users.map((u: any) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Fuente</label>
+            <select className="input" value={filters.source || ""} onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}>
+              <option value="">Todas</option>
+              {sourceOptions.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          {hasFilters && (
+            <button className="btn-secondary text-xs" onClick={() => setFilters({})}>
+              <X size={14} /> Limpiar filtros
+            </button>
+          )}
+        </div>
+      </div>
       <div className="flex-1 overflow-x-auto p-4 sm:p-6">
         {loading && <p className="text-sm text-gray-500">Cargando pipeline...</p>}
         {!loading && (

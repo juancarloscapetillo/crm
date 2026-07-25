@@ -144,27 +144,25 @@ export default function ProspectForm({
           <label className="label">Forma de pago</label>
           <input className="input" value={values.paymentMethod} onChange={(e) => set("paymentMethod", e.target.value)} placeholder="Contado, crédito, Infonavit..." />
         </div>
+        <div>
+          <label className="label">Asesor externo</label>
+          <select className="input" value={values.advisorId} onChange={(e) => set("advisorId", e.target.value)}>
+            <option value="">Sin especificar</option>
+            {advisors.map((a: any) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </div>
         {values.sourceType === "ASESOR_EXTERNO" && (
-          <>
-            <div>
-              <label className="label">Empresa inmobiliaria</label>
-              <select className="input" value={values.companyId} onChange={(e) => set("companyId", e.target.value)}>
-                <option value="">Sin especificar</option>
-                {companies.map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.commercialName}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label">Asesor externo</label>
-              <select className="input" value={values.advisorId} onChange={(e) => set("advisorId", e.target.value)}>
-                <option value="">Sin especificar</option>
-                {advisors.map((a: any) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
-            </div>
-          </>
+          <div>
+            <label className="label">Empresa inmobiliaria</label>
+            <select className="input" value={values.companyId} onChange={(e) => set("companyId", e.target.value)}>
+              <option value="">Sin especificar</option>
+              {companies.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.commercialName}</option>
+              ))}
+            </select>
+          </div>
         )}
         <div>
           <label className="label">Próxima acción</label>

@@ -28,7 +28,7 @@ export async function POST() {
     const vendedores = await prisma.user.findMany({ where: { role: { not: "ADMIN" } } });
     const assignees = vendedores.length ? vendedores : [admin];
 
-    const stages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+    const stages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
     const sources: SourceType[] = ["DIRECTO", "ASESOR_EXTERNO", "COMUNIDAD", "REFERIDO", "CAMPANA"];
 
     for (let i = 0; i < NAMES.length; i++) {

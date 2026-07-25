@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     const totalInvestment = marketing.reduce((s, m) => s + m.amount, 0);
 
     // Conversión por etapa (embudo)
-    const stageOrder: (keyof typeof stageLabels)[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+    const stageOrder: (keyof typeof stageLabels)[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
     const byStage = stageOrder.map((s) => ({
       stage: stageLabels[s],
       count: prospects.filter((p) => p.stage === s).length,
