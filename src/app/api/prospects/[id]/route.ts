@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       },
     });
     if (!prospect) return jsonError("Prospecto no encontrado", 404);
-    if (user.role === "VENDEDOR" && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
+    if (user.role !== "ADMIN" && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
     return NextResponse.json({
       prospect: {
@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const existing = await prisma.prospect.findUnique({ where: { id: params.id }, include: { assignedUser: true } });
     if (!existing) return jsonError("Prospecto no encontrado", 404);
-    if (user.role === "VENDEDOR" && existing.assignedUserId !== user.id) return jsonError("No autorizado", 403);
+    if (user.role !== "ADMIN" && existing.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
     const data: any = {};
     const activitiesToCreate: any[] = [];

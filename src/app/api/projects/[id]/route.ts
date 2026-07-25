@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError } from "@/lib/api";
+import { requireUser, requireAdminUser, handleApiError } from "@/lib/api";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireUser();
+    await requireAdminUser();
     await prisma.project.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch (err) {

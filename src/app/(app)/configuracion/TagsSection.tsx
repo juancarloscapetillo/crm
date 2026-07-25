@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { useFetch } from "@/lib/hooks";
@@ -9,6 +10,8 @@ import { ConfirmDialog, TagPill } from "@/components/ui";
 const palette = ["#253574", "#F6B436", "#5B8DEF", "#9B6FD9", "#3FBE7A", "#E15B5B"];
 
 export default function TagsSection() {
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
   const { data, reload } = useFetch<{ tags: any[] }>("/api/tags");
   const [name, setName] = useState("");
   const [color, setColor] = useState(palette[0]);
@@ -74,9 +77,11 @@ export default function TagsSection() {
             <TagPill name={t.name} color={t.color} />
             <div className="flex items-center gap-3">
               <span className="text-xs text-gray-400">{t._count?.prospects || 0} prospectos</span>
-              <button onClick={() => setToDelete(t.id)} className="text-gray-400 hover:text-red-500">
-                <Trash2 size={14} />
-              </button>
+              {isAdmin && (
+                <button onClick={() => setToDelete(t.id)} className="text-gray-400 hover:text-red-500">
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           </div>
         ))}

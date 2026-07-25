@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         name: body.name.trim(),
         email: body.email.toLowerCase().trim(),
         passwordHash,
-        role: body.role === "ADMIN" ? "ADMIN" : "VENDEDOR",
+        role: body.role === "ADMIN" || body.role === "LEAD_MANAGER" ? body.role : "VENDEDOR",
       },
       select: { id: true, name: true, email: true, role: true, active: true, createdAt: true },
     });

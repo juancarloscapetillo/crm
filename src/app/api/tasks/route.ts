@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const tasks = await prisma.task.findMany({
       where: {
         completed: completedParam === "true" ? true : completedParam === "false" ? false : undefined,
-        prospect: user.role === "VENDEDOR" ? { assignedUserId: user.id } : undefined,
+        prospect: user.role !== "ADMIN" ? { assignedUserId: user.id } : undefined,
       },
       include: {
         prospect: { select: { id: true, name: true, stage: true, lastActivityAt: true, isDemo: true } },

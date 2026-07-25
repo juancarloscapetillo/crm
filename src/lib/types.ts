@@ -6,7 +6,7 @@ declare module "next-auth" {
       id: string;
       name: string;
       email: string;
-      role: "ADMIN" | "VENDEDOR";
+      role: "ADMIN" | "VENDEDOR" | "LEAD_MANAGER";
     };
   }
 }

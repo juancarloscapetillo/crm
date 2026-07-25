@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const prospects = await prisma.prospect.findMany({
       where: {
         AND: [
-          user.role === "VENDEDOR" ? { assignedUserId: user.id } : {},
+          user.role !== "ADMIN" ? { assignedUserId: user.id } : {},
           {
             OR: [
               { name: { contains: q, mode: "insensitive" } },

@@ -58,6 +58,7 @@ export const activityIcons: Record<ActivityType, string> = {
 export const roleLabels: Record<Role, string> = {
   ADMIN: "Administrador",
   VENDEDOR: "Vendedor",
+  LEAD_MANAGER: "Lead Manager",
 };
 
 export function formatCurrency(value: number | null | undefined): string {

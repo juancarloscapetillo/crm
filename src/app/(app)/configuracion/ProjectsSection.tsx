@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { useFetch } from "@/lib/hooks";
 import { ConfirmDialog } from "@/components/ui";
 
 export default function ProjectsSection() {
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
   const { data, reload } = useFetch<{ projects: any[] }>("/api/projects");
   const [name, setName] = useState("");
   const [toDelete, setToDelete] = useState<string | null>(null);
@@ -56,9 +59,11 @@ export default function ProjectsSection() {
         {(data?.projects || []).map((p) => (
           <div key={p.id} className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-gray-50 text-sm">
             <span>{p.name}</span>
-            <button onClick={() => setToDelete(p.id)} className="text-gray-400 hover:text-red-500">
-              <Trash2 size={14} />
-            </button>
+            {isAdmin && (
+              <button onClick={() => setToDelete(p.id)} className="text-gray-400 hover:text-red-500">
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         ))}
       </div>

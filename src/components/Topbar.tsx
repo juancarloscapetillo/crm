@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { Menu, LogOut, UserCircle } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
 import Sidebar from "./Sidebar";
+import { roleLabels } from "@/lib/labels";
 
 export default function Topbar({ userName, role }: { userName: string; role: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function Topbar({ userName, role }: { userName: string; role: str
           <UserCircle size={22} className="text-calume-navy" />
           <div className="hidden sm:block leading-tight">
             <div className="font-medium">{userName}</div>
-            <div className="text-xs text-gray-400">{role === "ADMIN" ? "Administrador" : "Vendedor"}</div>
+            <div className="text-xs text-gray-400">{roleLabels[role as keyof typeof roleLabels] || role}</div>
           </div>
           <button
             className="ml-2 text-gray-400 hover:text-red-500 transition-colors"

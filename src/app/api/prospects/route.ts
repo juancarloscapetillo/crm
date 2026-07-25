@@ -8,7 +8,7 @@ function buildWhere(searchParams: URLSearchParams, userId: string, role: string)
   const where: Prisma.ProspectWhereInput = {};
   const and: Prisma.ProspectWhereInput[] = [];
 
-  if (role === "VENDEDOR") and.push({ assignedUserId: userId });
+  if (role !== "ADMIN") and.push({ assignedUserId: userId });
 
   const vendedor = searchParams.get("vendedor");
   if (vendedor) and.push({ assignedUserId: vendedor });
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         sourceType: body.sourceType || "DIRECTO",
         companyId: body.companyId || null,
         advisorId: body.advisorId || null,
-        assignedUserId: body.assignedUserId || (user.role === "VENDEDOR" ? user.id : null),
+        assignedUserId: body.assignedUserId || (user.role !== "ADMIN" ? user.id : null),
         projectId: body.projectId || null,
         unitInterest: body.unitInterest || null,
         budget: body.budget ? Number(body.budget) : null,

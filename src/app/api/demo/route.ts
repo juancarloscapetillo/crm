@@ -25,7 +25,7 @@ export async function POST() {
     let project = await prisma.project.findFirst();
     if (!project) project = await prisma.project.create({ data: { name: "Muretto" } });
 
-    const vendedores = await prisma.user.findMany({ where: { role: "VENDEDOR" } });
+    const vendedores = await prisma.user.findMany({ where: { role: { not: "ADMIN" } } });
     const assignees = vendedores.length ? vendedores : [admin];
 
     const stages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];

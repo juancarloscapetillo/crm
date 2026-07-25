@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const includeDemo = sp.get("includeDemo") === "true";
 
     const and: Prisma.ProspectWhereInput[] = [];
-    if (user.role === "VENDEDOR") and.push({ assignedUserId: user.id });
+    if (user.role !== "ADMIN") and.push({ assignedUserId: user.id });
     if (!includeDemo) and.push({ isDemo: false });
     if (start) and.push({ entryDate: { gte: start, lte: end } });
     else and.push({ entryDate: { lte: end } });
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => a.period.localeCompare(b.period));
 
     // Productividad por vendedor (prospectos atendidos, tareas completadas)
-    const users = await prisma.user.findMany({ where: { role: "VENDEDOR" } });
+    const users = await prisma.user.findMany({ where: { role: { not: "ADMIN" } } });
     const activityCounts = await prisma.activity.groupBy({
       by: ["userId"],
       _count: { id: true },

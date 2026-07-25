@@ -1,19 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useFetch } from "@/lib/hooks";
-import { Modal } from "@/components/ui";
+import { Modal, ConfirmDialog } from "@/components/ui";
 import { roleLabels, formatDate } from "@/lib/labels";
 
 const emptyForm = { name: "", email: "", password: "", role: "VENDEDOR" };
 
 export default function UsersSection() {
+  const { data: session } = useSession();
+  const currentUserId = (session?.user as any)?.id;
   const { data, reload } = useFetch<{ users: any[] }>("/api/users");
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [toDelete, setToDelete] = useState<string | null>(null);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +50,18 @@ export default function UsersSection() {
     }
   }
 
+  async function handleDelete() {
+    if (!toDelete) return;
+    const res = await fetch(`/api/users/${toDelete}`, { method: "DELETE" });
+    if (res.ok) {
+      toast.success("Usuario eliminado");
+      reload();
+    } else {
+      toast.error((await res.json()).error || "No se pudo eliminar el usuario");
+    }
+    setToDelete(null);
+  }
+
   return (
     <div className="card p-4 max-w-3xl">
       <div className="flex items-center justify-between mb-3">
@@ -62,6 +78,7 @@ export default function UsersSection() {
             <th className="text-left px-3 py-2">Rol</th>
             <th className="text-left px-3 py-2">Alta</th>
             <th className="text-center px-3 py-2">Estatus</th>
+            <th className="text-center px-3 py-2"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -79,10 +96,25 @@ export default function UsersSection() {
                   {u.active ? "Activo" : "Inactivo"}
                 </button>
               </td>
+              <td className="px-3 py-2 text-center">
+                {u.id !== currentUserId && (
+                  <button onClick={() => setToDelete(u.id)} className="text-gray-400 hover:text-red-500" title="Eliminar usuario">
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Eliminar usuario"
+        message="El usuario se elimina permanentemente. Sus prospectos, tareas y actividades pasadas se conservan sin asignar."
+        onConfirm={handleDelete}
+        onCancel={() => setToDelete(null)}
+      />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo usuario">
         <form onSubmit={handleCreate} className="space-y-3">
@@ -102,6 +134,7 @@ export default function UsersSection() {
             <label className="label">Rol</label>
             <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
               <option value="VENDEDOR">Vendedor</option>
+              <option value="LEAD_MANAGER">Lead Manager</option>
               <option value="ADMIN">Administrador</option>
             </select>
           </div>

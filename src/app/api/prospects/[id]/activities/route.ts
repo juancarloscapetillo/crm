@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const prospect = await prisma.prospect.findUnique({ where: { id: params.id } });
     if (!prospect) return jsonError("Prospecto no encontrado", 404);
-    if (user.role === "VENDEDOR" && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
+    if (user.role !== "ADMIN" && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
     const activity = await prisma.activity.create({
       data: { prospectId: params.id, userId: user.id, type, content: body.content.trim() },

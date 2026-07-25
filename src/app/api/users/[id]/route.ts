@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireAdminUser, handleApiError } from "@/lib/api";
+import { requireAdminUser, handleApiError, jsonError } from "@/lib/api";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -26,8 +26,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAdminUser();
-    await prisma.user.update({ where: { id: params.id }, data: { active: false } });
+    const admin = await requireAdminUser();
+    if (admin.id === params.id) return jsonError("No puedes eliminar tu propio usuario", 400);
+    await prisma.user.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch (err) {
     return handleApiError(err);

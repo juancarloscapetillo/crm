@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   ADMIN
   VENDEDOR
+  LEAD_MANAGER
 }
 
 enum Stage {
@@ -117,7 +118,7 @@ model Prospect {
   advisorId      String?
   advisor        Advisor?   @relation(fields: [advisorId], references: [id])
   assignedUserId String?
-  assignedUser   User?      @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  assignedUser   User?      @relation("AssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
   projectId      String?
   project        Project?   @relation(fields: [projectId], references: [id])
   unitInterest   String?
@@ -168,7 +169,7 @@ model Activity {
   prospectId String
   prospect   Prospect     @relation(fields: [prospectId], references: [id], onDelete: Cascade)
   userId     String?
-  user       User?        @relation(fields: [userId], references: [id])
+  user       User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   type       ActivityType
   content    String?
   fromValue  String?
@@ -185,7 +186,7 @@ model Task {
   completed      Boolean   @default(false)
   completedAt    DateTime?
   assignedUserId String?
-  assignedUser   User?     @relation("AssignedTask", fields: [assignedUserId], references: [id])
+  assignedUser   User?     @relation("AssignedTask", fields: [assignedUserId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now())
 }
 
@@ -220,5 +221,5 @@ model MarketingInvestment {
   isDemo           Boolean    @default(false)
   createdAt        DateTime   @default(now())
   createdById      String?
-  createdBy        User?      @relation(fields: [createdById], references: [id])
+  createdBy        User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
 }
