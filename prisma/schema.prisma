@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VENDEDOR
+}
+
+enum Stage {
+  INFORMES
+  VISITA
+  NEGOCIACION
+  GANADO
+  PERDIDO
+}
+
+enum SourceType {
+  DIRECTO
+  ASESOR_EXTERNO
+  COMUNIDAD
+  REFERIDO
+  CAMPANA
+}
+
+enum ActivityType {
+  CREACION
+  COMENTARIO
+  LLAMADA
+  MENSAJE
+  CORREO
+  VISITA
+  CAMBIO_ETAPA
+  CAMBIO_VENDEDOR
+  TAREA_CREADA
+  TAREA_COMPLETADA
+  ACTUALIZACION
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(VENDEDOR)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  prospects       Prospect[]       @relation("AssignedUser")
+  activities      Activity[]
+  tasks           Task[]           @relation("AssignedTask")
+  favorites       Favorite[]
+  createdMarketing MarketingInvestment[]
+}
+
+model Project {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  prospects Prospect[]
+  marketing MarketingInvestment[]
+}
+
+model Company {
+  id             String   @id @default(cuid())
+  commercialName String
+  legalName      String?
+  contactName    String?
+  phone          String?
+  email          String?
+  address        String?
+  active         Boolean  @default(true)
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  advisors  Advisor[]
+  prospects Prospect[]
+}
+
+model Advisor {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String?
+  email        String?
+  active       Boolean  @default(true)
+  registeredAt DateTime @default(now())
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id])
+
+  prospects Prospect[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#253574")
+  createdAt DateTime @default(now())
+
+  prospects ProspectTag[]
+}
+
+model Prospect {
+  id             String     @id @default(cuid())
+  name           String
+  phone          String?
+  email          String?
+  companyName    String?
+  sourceType     SourceType @default(DIRECTO)
+  companyId      String?
+  company        Company?   @relation(fields: [companyId], references: [id])
+  advisorId      String?
+  advisor        Advisor?   @relation(fields: [advisorId], references: [id])
+  assignedUserId String?
+  assignedUser   User?      @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  projectId      String?
+  project        Project?   @relation(fields: [projectId], references: [id])
+  unitInterest   String?
+  budget         Float?
+  paymentMethod  String?
+  entryDate      DateTime   @default(now())
+  stage          Stage      @default(INFORMES)
+  stageEnteredAt DateTime   @default(now())
+  estimatedValue Float?
+  lossReason     String?
+  notes          String?
+  nextAction     String?
+  nextActionDate DateTime?
+  lastActivityAt DateTime   @default(now())
+  isDemo         Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  tags        ProspectTag[]
+  activities  Activity[]
+  tasks       Task[]
+  attachments Attachment[]
+  favoritedBy Favorite[]
+}
+
+model ProspectTag {
+  prospectId String
+  tagId      String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([prospectId, tagId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, prospectId])
+}
+
+model Activity {
+  id         String       @id @default(cuid())
+  prospectId String
+  prospect   Prospect     @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?        @relation(fields: [userId], references: [id])
+  type       ActivityType
+  content    String?
+  fromValue  String?
+  toValue    String?
+  createdAt  DateTime     @default(now())
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  prospectId     String
+  prospect       Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  title          String
+  dueDate        DateTime?
+  completed      Boolean   @default(false)
+  completedAt    DateTime?
+  assignedUserId String?
+  assignedUser   User?     @relation("AssignedTask", fields: [assignedUserId], references: [id])
+  createdAt      DateTime  @default(now())
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  filename   String
+  mimeType   String
+  size       Int
+  data       Bytes
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+}
+
+model MarketingInvestment {
+  id               String     @id @default(cuid())
+  period           String
+  date             DateTime
+  projectId        String?
+  project          Project?   @relation(fields: [projectId], references: [id])
+  campaign         String
+  channel          String
+  provider         String?
+  amount           Float
+  description      String?
+  tags             String?
+  leadsGenerated   Int        @default(0)
+  visitsGenerated  Int        @default(0)
+  salesAttributed  Int        @default(0)
+  revenueAttributed Float     @default(0)
+  isDemo           Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  createdById      String?
+  createdBy        User?      @relation(fields: [createdById], references: [id])
+}
