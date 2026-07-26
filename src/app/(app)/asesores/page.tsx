@@ -3,17 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Plus, UserCog } from "lucide-react";
+import { Plus, UserCog, Building2 } from "lucide-react";
 import { PageHeader, Modal, EmptyState } from "@/components/ui";
-import { useFetch, useCatalogs } from "@/lib/hooks";
+import { useFetch } from "@/lib/hooks";
 import { formatCurrency, formatPercent } from "@/lib/labels";
 
 export default function AsesoresPage() {
   const { data, loading, reload } = useFetch<{ advisors: any[] }>("/api/advisors");
-  const { companies } = useCatalogs();
+  const { data: companiesData, reload: reloadCompanies } = useFetch<{ companies: any[] }>("/api/companies");
+  const companies = companiesData?.companies || [];
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", companyId: "" });
   const [saving, setSaving] = useState(false);
+
+  const [showCreateCompany, setShowCreateCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState({ commercialName: "", phone: "", email: "" });
+  const [savingCompany, setSavingCompany] = useState(false);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +43,29 @@ export default function AsesoresPage() {
     reload();
   }
 
+  async function handleCreateCompany(e: React.FormEvent) {
+    e.preventDefault();
+    if (!companyForm.commercialName.trim()) {
+      toast.error("El nombre comercial es obligatorio");
+      return;
+    }
+    setSavingCompany(true);
+    const res = await fetch("/api/companies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(companyForm),
+    });
+    setSavingCompany(false);
+    if (!res.ok) {
+      toast.error((await res.json()).error);
+      return;
+    }
+    toast.success("Inmobiliaria creada");
+    setShowCreateCompany(false);
+    setCompanyForm({ commercialName: "", phone: "", email: "" });
+    reloadCompanies();
+  }
+
   const advisors = data?.advisors || [];
 
   return (
@@ -46,9 +74,14 @@ export default function AsesoresPage() {
         title="Asesores externos"
         subtitle="Asesores inmobiliarios que generan prospectos para Calume"
         actions={
-          <button className="btn-gold" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Nuevo asesor
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="btn-secondary" onClick={() => setShowCreateCompany(true)}>
+              <Building2 size={16} /> Nueva inmobiliaria
+            </button>
+            <button className="btn-gold" onClick={() => setShowCreate(true)}>
+              <Plus size={16} /> Nuevo asesor
+            </button>
+          </div>
         }
       />
       <div className="p-4 sm:p-6">
@@ -121,6 +154,33 @@ export default function AsesoresPage() {
           </div>
           <button type="submit" disabled={saving} className="btn-gold w-full">
             {saving ? "Guardando..." : "Crear asesor"}
+          </button>
+        </form>
+      </Modal>
+
+      <Modal open={showCreateCompany} onClose={() => setShowCreateCompany(false)} title="Nueva inmobiliaria">
+        <form onSubmit={handleCreateCompany} className="space-y-3">
+          <div>
+            <label className="label">Nombre comercial *</label>
+            <input
+              className="input"
+              value={companyForm.commercialName}
+              onChange={(e) => setCompanyForm({ ...companyForm, commercialName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Teléfono</label>
+              <input className="input" value={companyForm.phone} onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Correo</label>
+              <input className="input" value={companyForm.email} onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })} />
+            </div>
+          </div>
+          <button type="submit" disabled={savingCompany} className="btn-gold w-full">
+            {savingCompany ? "Guardando..." : "Crear inmobiliaria"}
           </button>
         </form>
       </Modal>
