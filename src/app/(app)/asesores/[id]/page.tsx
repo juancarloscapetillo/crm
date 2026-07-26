@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { PageHeader, Modal, StageBadge } from "@/components/ui";
+import { Trash2 } from "lucide-react";
+import { PageHeader, Modal, StageBadge, ConfirmDialog } from "@/components/ui";
 import { useFetch, useCatalogs } from "@/lib/hooks";
 import { formatCurrency, formatPercent, formatDate } from "@/lib/labels";
 
@@ -14,6 +15,7 @@ export default function AsesorProfilePage() {
   const { data, loading, reload } = useFetch<{ advisor: any }>(`/api/advisors/${id}`);
   const { companies } = useCatalogs();
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const advisor = data?.advisor;
   const [form, setForm] = useState<any>(null);
 
@@ -46,6 +48,16 @@ export default function AsesorProfilePage() {
     reload();
   }
 
+  async function handleDelete() {
+    const res = await fetch(`/api/advisors/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast.error((await res.json()).error || "No se pudo eliminar");
+      return;
+    }
+    toast.success("Asesor eliminado");
+    router.push("/asesores");
+  }
+
   if (loading) return <div className="p-6 text-sm text-gray-500">Cargando...</div>;
   if (!advisor) return <div className="p-6 text-sm text-gray-500">Asesor no encontrado.</div>;
 
@@ -55,7 +67,14 @@ export default function AsesorProfilePage() {
         title={advisor.name}
         subtitle={advisor.company ? `${advisor.company.commercialName}` : "Asesor independiente"}
         onBack={handleBack}
-        actions={<button className="btn-secondary" onClick={openEdit}>Editar</button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <button className="btn-secondary" onClick={openEdit}>Editar</button>
+            <button className="btn-danger" onClick={() => setShowDelete(true)} title="Eliminar asesor">
+              <Trash2 size={15} />
+            </button>
+          </div>
+        }
       />
       <div className="p-4 sm:p-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -149,6 +168,14 @@ export default function AsesorProfilePage() {
           </form>
         </Modal>
       )}
+
+      <ConfirmDialog
+        open={showDelete}
+        title="Eliminar asesor"
+        message="Esta acción no se puede deshacer. Los prospectos que generó este asesor no se eliminarán, pero quedarán sin asesor asignado."
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }
