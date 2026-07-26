@@ -29,6 +29,7 @@ export default function ImportSection() {
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [alreadyImportedMsg, setAlreadyImportedMsg] = useState<string | null>(null);
 
+  const [resetPassword, setResetPassword] = useState("");
   const [resetConfirmText, setResetConfirmText] = useState("");
   const [resetting, setResetting] = useState(false);
   const [resetSummary, setResetSummary] = useState<ResetSummary | null>(null);
@@ -68,7 +69,7 @@ export default function ImportSection() {
     const res = await fetch("/api/admin/reset-data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirm: resetConfirmText }),
+      body: JSON.stringify({ confirm: resetConfirmText, password: resetPassword }),
     });
     const data = await res.json();
     setResetting(false);
@@ -78,6 +79,7 @@ export default function ImportSection() {
     }
     setResetSummary(data.deleted);
     setResetConfirmText("");
+    setResetPassword("");
     toast.success("Datos reiniciados");
   }
 
@@ -210,20 +212,33 @@ export default function ImportSection() {
           Borra permanentemente todos los prospectos, asesores, inmobiliarias, tags, tareas, actividades, archivos
           adjuntos y registros de Marketing. Los usuarios y proyectos NO se tocan. Esta acción no se puede deshacer.
         </p>
-        <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <input
-            className="input text-sm flex-1"
-            placeholder='Escribe "BORRAR TODO" para confirmar'
-            value={resetConfirmText}
-            onChange={(e) => setResetConfirmText(e.target.value)}
-          />
-          <button
-            onClick={handleReset}
-            disabled={resetConfirmText !== "BORRAR TODO" || resetting}
-            className="btn-danger whitespace-nowrap disabled:opacity-40"
-          >
-            {resetting ? "Borrando..." : "Borrar todo"}
-          </button>
+        <div className="mt-3 space-y-2">
+          <div>
+            <label className="label text-red-700">Tu contraseña de administrador</label>
+            <input
+              type="password"
+              className="input text-sm"
+              placeholder="Contraseña"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <input
+              className="input text-sm flex-1"
+              placeholder='Escribe "BORRAR TODO" para confirmar'
+              value={resetConfirmText}
+              onChange={(e) => setResetConfirmText(e.target.value)}
+            />
+            <button
+              onClick={handleReset}
+              disabled={resetConfirmText !== "BORRAR TODO" || !resetPassword || resetting}
+              className="btn-danger whitespace-nowrap disabled:opacity-40"
+            >
+              {resetting ? "Borrando..." : "Borrar todo"}
+            </button>
+          </div>
         </div>
 
         {resetSummary && (

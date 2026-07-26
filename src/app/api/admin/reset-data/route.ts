@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser, handleApiError, jsonError } from "@/lib/api";
 
 export async function POST(req: NextRequest) {
   try {
-    await requireAdminUser();
+    const admin = await requireAdminUser();
     const body = await req.json();
+
+    if (!body.password) return jsonError("Ingresa tu contraseña para confirmar");
+    const me = await prisma.user.findUnique({ where: { id: admin.id } });
+    const passwordOk = me && (await bcrypt.compare(body.password, me.passwordHash));
+    if (!passwordOk) return jsonError("Contraseña incorrecta", 401);
+
     if (body.confirm !== "BORRAR TODO") {
       return jsonError('Escribe exactamente "BORRAR TODO" para confirmar');
     }
