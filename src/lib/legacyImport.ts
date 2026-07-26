@@ -336,6 +336,7 @@ export async function importLegacyProspects(csvText: string, opts: { force?: boo
           entryDate,
           stage,
           stageEnteredAt: entryDate,
+          maxStage: stage === "PERDIDO" ? "INFORMES" : stage,
           estimatedValue,
           notes,
           lastActivityAt,

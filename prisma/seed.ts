@@ -122,6 +122,7 @@ async function seedDemoData({ admin, vendedores, tags, project }: any) {
   }
 
   const stages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+  const lostMaxStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION"];
   const sources: SourceType[] = ["DIRECTO", "ASESOR_EXTERNO", "COMUNIDAD", "REFERIDO", "CAMPANA"];
   const names = [
     "Roberto Chan", "Fernanda Uc", "Diego Pech", "Valeria Couoh", "Emilio Canul",
@@ -134,6 +135,7 @@ async function seedDemoData({ admin, vendedores, tags, project }: any) {
 
   for (let i = 0; i < names.length; i++) {
     const stage = stages[i % stages.length];
+    const maxStage: Stage = stage === "PERDIDO" ? lostMaxStages[Math.floor(i / stages.length) % lostMaxStages.length] : stage;
     const daysAgo = Math.floor(Math.random() * 90);
     const entryDate = new Date(Date.now() - daysAgo * 86400000);
     const lastActivityAgoHours = stage === "GANADO" || stage === "PERDIDO" ? 200 : Math.random() * 140;
@@ -155,6 +157,7 @@ async function seedDemoData({ admin, vendedores, tags, project }: any) {
         entryDate,
         stage,
         stageEnteredAt: entryDate,
+        maxStage,
         estimatedValue: 1800000 + (i % 6) * 250000,
         lossReason: stage === "PERDIDO" ? lossReasons[i % lossReasons.length] : null,
         lastActivityAt,

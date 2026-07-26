@@ -133,6 +133,7 @@ export async function POST(req: NextRequest) {
         nextActionDate: body.nextActionDate ? new Date(body.nextActionDate) : null,
         stage: "SIN_CONTACTAR",
         stageEnteredAt: now,
+        maxStage: "SIN_CONTACTAR",
         lastActivityAt: now,
         entryDate: now,
         tags: body.tagIds?.length ? { create: body.tagIds.map((id: string) => ({ tagId: id })) } : undefined,

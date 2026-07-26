@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError, jsonError } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
-import { stageLabels } from "@/lib/labels";
+import { stageLabels, stageRank } from "@/lib/labels";
 import { Stage } from "@prisma/client";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -67,6 +67,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const newStage = body.stage as Stage;
       data.stage = newStage;
       data.stageEnteredAt = now;
+      if (stageRank[newStage] > stageRank[existing.maxStage]) data.maxStage = newStage;
       if (newStage === "PERDIDO") data.lossReason = body.lossReason || existing.lossReason || null;
       if (newStage !== "PERDIDO" && existing.stage === "PERDIDO") data.lossReason = null;
       activitiesToCreate.push({

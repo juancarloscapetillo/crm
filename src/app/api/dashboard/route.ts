@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
 import { getRange, RangeKey } from "@/lib/dateRanges";
-import { stageLabels } from "@/lib/labels";
+import { stageLabels, stageRank, funnelStages } from "@/lib/labels";
 import { Prisma } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -100,6 +100,25 @@ export async function GET(req: NextRequest) {
     }
     const evolution = Object.values(buckets).sort((a, b) => a.label.localeCompare(b.label));
 
+    const funnel = funnelStages.map((stage) => {
+      const reached = prospects.filter((p) => stageRank[p.maxStage] >= stageRank[stage]);
+      const won = reached.filter((p) => p.stage === "GANADO").length;
+      const lost = reached.filter((p) => p.stage === "PERDIDO").length;
+      const active = reached.length - won - lost;
+      const closeRate = won + lost > 0 ? won / (won + lost) : null;
+      const neededPerSale = won > 0 ? reached.length / won : null;
+      return {
+        stage,
+        label: stageLabels[stage],
+        reached: reached.length,
+        won,
+        lost,
+        active,
+        closeRate,
+        neededPerSale,
+      };
+    });
+
     return NextResponse.json({
       kpis: {
         nuevos,
@@ -120,6 +139,7 @@ export async function GET(req: NextRequest) {
         stages: Object.values(stageDist),
       },
       evolution,
+      funnel,
     });
   } catch (err) {
     return handleApiError(err);

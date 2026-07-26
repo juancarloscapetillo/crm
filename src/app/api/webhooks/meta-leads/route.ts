@@ -91,6 +91,7 @@ async function processLead(value: { leadgen_id: string; page_id: string; form_id
       phone: pickPhone(fields) || null,
       sourceType: "CAMPANA",
       stage: "SIN_CONTACTAR",
+      maxStage: "SIN_CONTACTAR",
       projectId: source.projectId,
       assignedUserId,
       notes: notesParts.join("\n\n"),

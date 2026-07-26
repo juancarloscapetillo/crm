@@ -27,6 +27,10 @@ type DashboardData = {
     stages: { name: string; count: number }[];
   };
   evolution: { label: string; nuevos: number; ganados: number }[];
+  funnel: {
+    stage: string; label: string; reached: number; won: number; lost: number;
+    active: number; closeRate: number | null; neededPerSale: number | null;
+  }[];
 };
 
 export default function DashboardPage() {
@@ -186,6 +190,45 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 )}
               </div>
+            </div>
+
+            <div className="card p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Embudo de conversión (etapa máxima alcanzada)</h3>
+              <p className="text-xs text-gray-500 mb-3">
+                Cuenta cada prospecto por la etapa más avanzada a la que llegó, sin importar si después se perdió. "Perdido" no es una etapa: solo marca el desenlace.
+              </p>
+              {data.funnel.every((f) => f.reached === 0) ? (
+                <EmptyState title="Sin datos en este periodo" />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                      <tr>
+                        <th className="text-left px-3 py-2">Etapa máxima</th>
+                        <th className="text-left px-3 py-2">Llegaron</th>
+                        <th className="text-left px-3 py-2">Ganados</th>
+                        <th className="text-left px-3 py-2">Perdidos</th>
+                        <th className="text-left px-3 py-2">Activos</th>
+                        <th className="text-left px-3 py-2">Tasa de cierre</th>
+                        <th className="text-left px-3 py-2">Prospectos por venta</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {data.funnel.map((f) => (
+                        <tr key={f.stage}>
+                          <td className="px-3 py-1.5 font-medium">{f.label}</td>
+                          <td className="px-3 py-1.5">{f.reached}</td>
+                          <td className="px-3 py-1.5 text-alert-green">{f.won}</td>
+                          <td className="px-3 py-1.5 text-alert-red">{f.lost}</td>
+                          <td className="px-3 py-1.5 text-gray-500">{f.active}</td>
+                          <td className="px-3 py-1.5">{formatPercent(f.closeRate)}</td>
+                          <td className="px-3 py-1.5">{f.neededPerSale !== null ? f.neededPerSale.toFixed(1) : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </>
         )}

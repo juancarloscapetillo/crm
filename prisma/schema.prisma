@@ -143,6 +143,7 @@ model Prospect {
   entryDate      DateTime   @default(now())
   stage          Stage      @default(INFORMES)
   stageEnteredAt DateTime   @default(now())
+  maxStage       Stage      @default(INFORMES)
   estimatedValue Float?
   lossReason     String?
   notes          String?
