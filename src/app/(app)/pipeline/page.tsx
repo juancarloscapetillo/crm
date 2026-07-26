@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCorners, DragStartEvent, DragEndEvent,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import toast from "react-hot-toast";
-import { Plus, Star, X } from "lucide-react";
+import { Plus, Star, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader, Modal } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
@@ -37,14 +37,19 @@ type PipelineFilters = {
   source?: string;
 };
 
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+function DroppableColumn({ id, collapsed, children }: { id: string; collapsed?: boolean; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className={`flex-1 min-w-[280px] rounded-xl2 p-2 transition-colors ${isOver ? "bg-calume-navy/5" : ""}`}>
+    <div
+      ref={setNodeRef}
+      className={`${collapsed ? "w-12 flex-shrink-0" : "flex-1 min-w-[280px]"} rounded-xl2 p-2 transition-all ${isOver ? "bg-calume-navy/5" : ""}`}
+    >
       {children}
     </div>
   );
 }
+
+const COLLAPSE_STORAGE_KEY = "pipeline-collapsed-columns";
 
 function DraggableCard({ prospect, onFavoriteToggle }: { prospect: ProspectCardData; onFavoriteToggle: (id: string, next: boolean) => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: prospect.id });
@@ -61,6 +66,25 @@ function DraggableCard({ prospect, onFavoriteToggle }: { prospect: ProspectCardD
 export default function PipelinePage() {
   const router = useRouter();
   const [filters, setFilters] = useState<PipelineFilters>({});
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(COLLAPSE_STORAGE_KEY);
+      if (stored) setCollapsed(JSON.parse(stored));
+    } catch {
+      // ignore malformed storage
+    }
+  }, []);
+
+  function toggleCollapse(id: string) {
+    setCollapsed((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
   const qs = toQueryString(filters as any);
   const { data, loading, reload } = useFetch<{ prospects: ProspectCardData[] }>(`/api/prospects${qs}`);
   const { projects, tags, advisors, companies, users } = useCatalogs();
@@ -239,23 +263,49 @@ export default function PipelinePage() {
         {!loading && (
           <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex gap-3 min-h-[70vh]">
-              <DroppableColumn id={FAVORITES_ID}>
-                <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold flex items-center gap-1.5 text-calume-gold">
-                      <Star size={14} className="fill-calume-gold" /> Favoritos
-                    </h3>
-                    <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{favoriteItems.length}</span>
-                  </div>
-                  <div className="text-[11px] text-gray-400 mt-1">No es una etapa: solo un acceso rápido</div>
-                </div>
-                <div className="min-h-[100px]">
-                  {favoriteItems.map((p: any) => (
-                    <div key={p.id} className="mb-2">
-                      <ProspectCard prospect={p} onFavoriteToggle={reload} />
+              <DroppableColumn id={FAVORITES_ID} collapsed={collapsed[FAVORITES_ID]}>
+                {collapsed[FAVORITES_ID] ? (
+                  <button
+                    onClick={() => toggleCollapse(FAVORITES_ID)}
+                    className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-3 hover:bg-gray-50"
+                    title="Expandir Favoritos"
+                  >
+                    <ChevronRight size={14} className="text-gray-400" />
+                    <Star size={14} className="fill-calume-gold text-calume-gold" />
+                    <span className="text-[11px] font-medium bg-gray-100 rounded-full px-1.5 py-0.5">{favoriteItems.length}</span>
+                    <span className="text-[11px] text-calume-gold font-semibold [writing-mode:vertical-rl] rotate-180 mt-1">
+                      Favoritos
+                    </span>
+                  </button>
+                ) : (
+                  <>
+                    <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold flex items-center gap-1.5 text-calume-gold">
+                          <Star size={14} className="fill-calume-gold" /> Favoritos
+                        </h3>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{favoriteItems.length}</span>
+                          <button
+                            onClick={() => toggleCollapse(FAVORITES_ID)}
+                            className="text-gray-400 hover:text-gray-600"
+                            title="Colapsar columna"
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-gray-400 mt-1">No es una etapa: solo un acceso rápido</div>
                     </div>
-                  ))}
-                </div>
+                    <div className="min-h-[100px]">
+                      {favoriteItems.map((p: any) => (
+                        <div key={p.id} className="mb-2">
+                          <ProspectCard prospect={p} onFavoriteToggle={reload} />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </DroppableColumn>
               {kanbanStages.map((stage) => {
                 const items = grouped[stage] || [];
@@ -267,27 +317,58 @@ export default function PipelinePage() {
                 const alertCount = items.filter((p: any) => p.alertStatus === "yellow" || p.alertStatus === "red").length;
 
                 return (
-                  <DroppableColumn key={stage} id={stage}>
-                    <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold" style={{ color: stageColors[stage] }}>
+                  <DroppableColumn key={stage} id={stage} collapsed={collapsed[stage]}>
+                    {collapsed[stage] ? (
+                      <button
+                        onClick={() => toggleCollapse(stage)}
+                        className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-3 hover:bg-gray-50"
+                        title={`Expandir ${stageLabels[stage]}`}
+                      >
+                        <ChevronRight size={14} className="text-gray-400" />
+                        <span className="text-[11px] font-medium bg-gray-100 rounded-full px-1.5 py-0.5">{items.length}</span>
+                        {alertCount > 0 && stage !== "GANADO" && stage !== "PERDIDO" && (
+                          <span className="text-[11px] text-alert-red font-medium">⚠</span>
+                        )}
+                        <span
+                          className="text-[11px] font-semibold [writing-mode:vertical-rl] rotate-180 mt-1"
+                          style={{ color: stageColors[stage] }}
+                        >
                           {stageLabels[stage]}
-                        </h3>
-                        <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{items.length}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{formatCurrency(totalValue)} potencial</div>
-                      <div className="text-[11px] text-gray-400">
-                        {stage !== "GANADO" && stage !== "PERDIDO" && `~${Math.round(avgHours / 24)}d promedio en etapa`}
-                      </div>
-                      {alertCount > 0 && stage !== "GANADO" && stage !== "PERDIDO" && (
-                        <div className="text-[11px] text-alert-red font-medium mt-1">⚠ {alertCount} sin seguimiento</div>
-                      )}
-                    </div>
-                    <div className="min-h-[100px]">
-                      {items.map((p: any) => (
-                        <DraggableCard key={p.id} prospect={p} onFavoriteToggle={reload} />
-                      ))}
-                    </div>
+                        </span>
+                      </button>
+                    ) : (
+                      <>
+                        <div className="bg-white rounded-xl2 border border-gray-200 p-3 mb-2 sticky top-0 z-10">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold" style={{ color: stageColors[stage] }}>
+                              {stageLabels[stage]}
+                            </h3>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{items.length}</span>
+                              <button
+                                onClick={() => toggleCollapse(stage)}
+                                className="text-gray-400 hover:text-gray-600"
+                                title="Colapsar columna"
+                              >
+                                <ChevronLeft size={14} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{formatCurrency(totalValue)} potencial</div>
+                          <div className="text-[11px] text-gray-400">
+                            {stage !== "GANADO" && stage !== "PERDIDO" && `~${Math.round(avgHours / 24)}d promedio en etapa`}
+                          </div>
+                          {alertCount > 0 && stage !== "GANADO" && stage !== "PERDIDO" && (
+                            <div className="text-[11px] text-alert-red font-medium mt-1">⚠ {alertCount} sin seguimiento</div>
+                          )}
+                        </div>
+                        <div className="min-h-[100px]">
+                          {items.map((p: any) => (
+                            <DraggableCard key={p.id} prospect={p} onFavoriteToggle={reload} />
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </DroppableColumn>
                 );
               })}
