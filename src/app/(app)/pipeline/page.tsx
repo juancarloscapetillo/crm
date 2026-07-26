@@ -11,6 +11,7 @@ import { Plus, Star, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader, Modal } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
+import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick, useCatalogs } from "@/lib/hooks";
 import { pipelineStages, stageLabels, stageColors, formatCurrency } from "@/lib/labels";
 import { toQueryString } from "@/lib/queryString";
@@ -92,6 +93,7 @@ export default function PipelinePage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localOverride, setLocalOverride] = useState<Record<string, Stage>>({});
   const [showCreate, setShowCreate] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
 
@@ -179,6 +181,7 @@ export default function PipelinePage() {
       return;
     }
     toast.success(`Movido a ${stageLabels[newStage]}`);
+    if (newStage === "GANADO") setCelebrate(true);
     reload();
   }
 
@@ -186,6 +189,7 @@ export default function PipelinePage() {
 
   return (
     <div className="flex flex-col h-full">
+      <Fireworks active={celebrate} onDone={() => setCelebrate(false)} />
       <PageHeader
         title="Pipeline de ventas"
         subtitle="Arrastra las tarjetas para mover a los prospectos entre etapas"

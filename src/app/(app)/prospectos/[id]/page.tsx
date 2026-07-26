@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake } from "lucide-react";
 import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog, DemoBadge } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
+import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick } from "@/lib/hooks";
 import { formatCurrency, formatDate, formatDateTime, sourceLabels, activityIcons, activityLabels, stageLabels } from "@/lib/labels";
 import { pipelineStages } from "@/lib/labels";
@@ -35,6 +36,7 @@ export default function ProspectProfilePage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDue, setTaskDue] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
 
   const prospect = data?.prospect;
 
@@ -85,6 +87,7 @@ export default function ProspectProfilePage() {
       return;
     }
     toast.success(`Etapa actualizada a ${stageLabels[stage]}`);
+    if (stage === "GANADO") setCelebrate(true);
     setShowLossReason(false);
     setPendingStage(null);
     setLossReason("");
@@ -167,6 +170,7 @@ export default function ProspectProfilePage() {
 
   return (
     <div>
+      <Fireworks active={celebrate} onDone={() => setCelebrate(false)} />
       <PageHeader
         title={prospect.name}
         subtitle={`Ingresó el ${formatDate(prospect.entryDate)} · Fuente: ${sourceLabels[prospect.sourceType as keyof typeof sourceLabels]}`}
