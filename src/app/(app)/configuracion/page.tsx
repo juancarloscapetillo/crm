@@ -8,11 +8,13 @@ import ProjectsSection from "./ProjectsSection";
 import UsersSection from "./UsersSection";
 import DemoDataSection from "./DemoDataSection";
 import IntegrationsSection from "./IntegrationsSection";
+import MetaAdsSection from "./MetaAdsSection";
 
 const tabs = [
   { key: "tags", label: "Tags" },
   { key: "proyectos", label: "Proyectos" },
   { key: "integraciones", label: "Integraciones" },
+  { key: "meta-ads", label: "Meta Ads" },
   { key: "usuarios", label: "Usuarios" },
   { key: "demo", label: "Datos demostrativos" },
 ];
@@ -28,7 +30,7 @@ export default function ConfiguracionPage() {
       <div className="p-4 sm:p-6 space-y-4">
         <div className="flex gap-2 border-b border-gray-200">
           {tabs.map((t) => {
-            if (t.key === "usuarios" && !isAdmin) return null;
+            if ((t.key === "usuarios" || t.key === "meta-ads") && !isAdmin) return null;
             return (
               <button
                 key={t.key}
@@ -46,6 +48,7 @@ export default function ConfiguracionPage() {
         {tab === "tags" && <TagsSection />}
         {tab === "proyectos" && <ProjectsSection />}
         {tab === "integraciones" && <IntegrationsSection />}
+        {tab === "meta-ads" && isAdmin && <MetaAdsSection />}
         {tab === "usuarios" && isAdmin && <UsersSection />}
         {tab === "demo" && <DemoDataSection isAdmin={isAdmin} />}
       </div>
