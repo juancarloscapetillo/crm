@@ -65,9 +65,6 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-        <p className="text-center text-xs text-white/60 mt-6">
-          Usuarios de prueba: admin@calume.mx / Calume2026! · vendedor1@calume.mx / Vendedor2026!
-        </p>
       </div>
     </div>
   );
