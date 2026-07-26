@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle } from "lucide-react";
+import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake } from "lucide-react";
 import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog, DemoBadge } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import { useFetch, useTick } from "@/lib/hooks";
@@ -194,6 +194,16 @@ export default function ProspectProfilePage() {
           ))}
         </div>
 
+        {prospect.advisor && (
+          <div className="card p-3 bg-calume-navy/5 border-calume-navy/10 flex items-center gap-2">
+            <Handshake size={16} className="text-calume-navy shrink-0" />
+            <span className="text-sm text-gray-700">
+              Lo trae el asesor <strong className="text-calume-navy">{prospect.advisor.name}</strong>
+              {prospect.advisor.company && <> · {prospect.advisor.company.commercialName}</>}
+            </span>
+          </div>
+        )}
+
         {prospect.stage !== "GANADO" && prospect.stage !== "PERDIDO" && (
           <div className="card p-4">
             <div className="text-xs font-medium text-gray-500 mb-2">Mover a otra etapa</div>
@@ -233,7 +243,10 @@ export default function ProspectProfilePage() {
                 <Field label="Presupuesto" value={formatCurrency(prospect.budget)} />
                 <Field label="Valor estimado" value={formatCurrency(prospect.estimatedValue)} />
                 <Field label="Forma de pago" value={prospect.paymentMethod} />
-                <Field label="Asesor externo" value={prospect.advisor?.name} />
+                <Field
+                  label="Asesor externo"
+                  value={prospect.advisor?.name && `${prospect.advisor.name}${prospect.advisor.company ? ` (${prospect.advisor.company.commercialName})` : ""}`}
+                />
                 <Field label="Próxima acción" value={prospect.nextAction} />
                 <Field label="Fecha próximo seguimiento" value={formatDate(prospect.nextActionDate)} />
               </dl>
