@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, AlertTriangle } from "lucide-react";
 
 interface ImportSummary {
   totalRows: number;
@@ -13,6 +13,14 @@ interface ImportSummary {
   advisorsTouched: number;
 }
 
+interface ResetSummary {
+  prospects: number;
+  advisors: number;
+  companies: number;
+  tags: number;
+  marketing: number;
+}
+
 export default function ImportSection() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +28,10 @@ export default function ImportSection() {
   const [uploading, setUploading] = useState(false);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [alreadyImportedMsg, setAlreadyImportedMsg] = useState<string | null>(null);
+
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetSummary, setResetSummary] = useState<ResetSummary | null>(null);
 
   async function handleUpload() {
     if (!file) return;
@@ -48,6 +60,25 @@ export default function ImportSection() {
     toast.success(`${data.summary.created} de ${data.summary.totalRows} prospectos importados`);
     setFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handleReset() {
+    setResetting(true);
+    setResetSummary(null);
+    const res = await fetch("/api/admin/reset-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm: resetConfirmText }),
+    });
+    const data = await res.json();
+    setResetting(false);
+    if (!res.ok) {
+      toast.error(data.error || "No se pudo reiniciar los datos");
+      return;
+    }
+    setResetSummary(data.deleted);
+    setResetConfirmText("");
+    toast.success("Datos reiniciados");
   }
 
   return (
@@ -167,6 +198,42 @@ export default function ImportSection() {
                 </ul>
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      <div className="card p-4 border-red-200 bg-red-50/40">
+        <h3 className="text-sm font-semibold text-red-700 flex items-center gap-2">
+          <AlertTriangle size={15} /> Zona de peligro: reiniciar datos
+        </h3>
+        <p className="text-xs text-red-700/80 mt-1">
+          Borra permanentemente todos los prospectos, asesores, inmobiliarias, tags, tareas, actividades, archivos
+          adjuntos y registros de Marketing. Los usuarios y proyectos NO se tocan. Esta acción no se puede deshacer.
+        </p>
+        <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <input
+            className="input text-sm flex-1"
+            placeholder='Escribe "BORRAR TODO" para confirmar'
+            value={resetConfirmText}
+            onChange={(e) => setResetConfirmText(e.target.value)}
+          />
+          <button
+            onClick={handleReset}
+            disabled={resetConfirmText !== "BORRAR TODO" || resetting}
+            className="btn-danger whitespace-nowrap disabled:opacity-40"
+          >
+            {resetting ? "Borrando..." : "Borrar todo"}
+          </button>
+        </div>
+
+        {resetSummary && (
+          <div className="mt-4 text-xs bg-white text-gray-700 border border-red-200 rounded p-3 space-y-1">
+            <div className="font-medium text-red-700">Se eliminó:</div>
+            <div>Prospectos: {resetSummary.prospects}</div>
+            <div>Asesores: {resetSummary.advisors}</div>
+            <div>Inmobiliarias: {resetSummary.companies}</div>
+            <div>Tags: {resetSummary.tags}</div>
+            <div>Registros de Marketing: {resetSummary.marketing}</div>
           </div>
         )}
       </div>
