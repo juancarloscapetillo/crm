@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { PageHeader, Modal, StageBadge } from "@/components/ui";
@@ -10,11 +10,20 @@ import { formatCurrency, formatPercent, formatDate } from "@/lib/labels";
 
 export default function AsesorProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data, loading, reload } = useFetch<{ advisor: any }>(`/api/advisors/${id}`);
   const { companies } = useCatalogs();
   const [showEdit, setShowEdit] = useState(false);
   const advisor = data?.advisor;
   const [form, setForm] = useState<any>(null);
+
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/asesores");
+    }
+  }
 
   function openEdit() {
     setForm({ name: advisor.name, phone: advisor.phone || "", email: advisor.email || "", companyId: advisor.companyId || "", active: advisor.active });
@@ -45,6 +54,7 @@ export default function AsesorProfilePage() {
       <PageHeader
         title={advisor.name}
         subtitle={advisor.company ? `${advisor.company.commercialName}` : "Asesor independiente"}
+        onBack={handleBack}
         actions={<button className="btn-secondary" onClick={openEdit}>Editar</button>}
       />
       <div className="p-4 sm:p-6 space-y-6">
