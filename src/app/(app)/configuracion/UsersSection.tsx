@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { useFetch } from "@/lib/hooks";
 import { Modal, ConfirmDialog } from "@/components/ui";
 import { roleLabels, formatDate } from "@/lib/labels";
 
 const emptyForm = { name: "", email: "", password: "", role: "VENDEDOR" };
+const emptyEditForm = { name: "", email: "", password: "", role: "VENDEDOR" };
 
 export default function UsersSection() {
   const { data: session } = useSession();
@@ -18,6 +19,9 @@ export default function UsersSection() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
+  const [editSaving, setEditSaving] = useState(false);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +39,32 @@ export default function UsersSection() {
     toast.success("Usuario creado");
     setForm(emptyForm);
     setShowCreate(false);
+    reload();
+  }
+
+  function openEdit(u: any) {
+    setEditingUser(u);
+    setEditForm({ name: u.name, email: u.email, password: "", role: u.role });
+  }
+
+  async function handleEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingUser) return;
+    setEditSaving(true);
+    const body: any = { name: editForm.name, email: editForm.email, role: editForm.role };
+    if (editForm.password) body.password = editForm.password;
+    const res = await fetch(`/api/users/${editingUser.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setEditSaving(false);
+    if (!res.ok) {
+      toast.error((await res.json()).error || "No se pudo actualizar el usuario");
+      return;
+    }
+    toast.success("Usuario actualizado");
+    setEditingUser(null);
     reload();
   }
 
@@ -97,11 +127,16 @@ export default function UsersSection() {
                 </button>
               </td>
               <td className="px-3 py-2 text-center">
-                {u.id !== currentUserId && (
-                  <button onClick={() => setToDelete(u.id)} className="text-gray-400 hover:text-red-500" title="Eliminar usuario">
-                    <Trash2 size={14} />
+                <div className="flex items-center justify-center gap-2">
+                  <button onClick={() => openEdit(u)} className="text-gray-400 hover:text-calume-navy" title="Editar usuario">
+                    <Pencil size={14} />
                   </button>
-                )}
+                  {u.id !== currentUserId && (
+                    <button onClick={() => setToDelete(u.id)} className="text-gray-400 hover:text-red-500" title="Eliminar usuario">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -140,6 +175,46 @@ export default function UsersSection() {
           </div>
           <button type="submit" disabled={saving} className="btn-gold w-full">
             {saving ? "Guardando..." : "Crear usuario"}
+          </button>
+        </form>
+      </Modal>
+
+      <Modal open={!!editingUser} onClose={() => setEditingUser(null)} title="Editar usuario">
+        <form onSubmit={handleEdit} className="space-y-3">
+          <div>
+            <label className="label">Nombre *</label>
+            <input className="input" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
+          </div>
+          <div>
+            <label className="label">Correo *</label>
+            <input
+              type="email"
+              className="input"
+              value={editForm.email}
+              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label className="label">Nueva contraseña</label>
+            <input
+              type="password"
+              className="input"
+              value={editForm.password}
+              onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+              placeholder="Dejar en blanco para no cambiarla"
+            />
+          </div>
+          <div>
+            <label className="label">Rol</label>
+            <select className="input" value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
+              <option value="VENDEDOR">Vendedor</option>
+              <option value="LEAD_MANAGER">Lead Manager</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
+          </div>
+          <button type="submit" disabled={editSaving} className="btn-gold w-full">
+            {editSaving ? "Guardando..." : "Guardar cambios"}
           </button>
         </form>
       </Modal>

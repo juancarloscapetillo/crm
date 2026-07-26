@@ -9,9 +9,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json();
     const data: any = {};
     if (body.name !== undefined) data.name = body.name;
+    if (body.email !== undefined) data.email = body.email;
     if (body.role !== undefined) data.role = body.role;
     if (body.active !== undefined) data.active = body.active;
     if (body.password) data.passwordHash = await bcrypt.hash(body.password, 10);
+
+    if (data.email) {
+      const existing = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existing && existing.id !== params.id) return jsonError("Ya existe otro usuario con ese correo", 400);
+    }
 
     const user = await prisma.user.update({
       where: { id: params.id },
