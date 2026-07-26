@@ -28,6 +28,9 @@ function buildWhere(searchParams: URLSearchParams, userId: string, role: string)
   const advisor = searchParams.get("advisor");
   if (advisor) and.push({ advisorId: advisor });
 
+  const company = searchParams.get("company");
+  if (company) and.push({ companyId: company });
+
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   if (from || to) {

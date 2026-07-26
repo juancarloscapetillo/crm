@@ -32,6 +32,7 @@ type PipelineFilters = {
   project?: string;
   tag?: string;
   advisor?: string;
+  company?: string;
   vendedor?: string;
   source?: string;
 };
@@ -62,13 +63,13 @@ export default function PipelinePage() {
   const [filters, setFilters] = useState<PipelineFilters>({});
   const qs = toQueryString(filters as any);
   const { data, loading, reload } = useFetch<{ prospects: ProspectCardData[] }>(`/api/prospects${qs}`);
-  const { projects, tags, advisors, users } = useCatalogs();
+  const { projects, tags, advisors, companies, users } = useCatalogs();
   useTick();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localOverride, setLocalOverride] = useState<Record<string, Stage>>({});
   const [showCreate, setShowCreate] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.vendedor || filters.source);
+  const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
 
   async function handleCreate(values: ProspectFormValues) {
     const res = await fetch("/api/prospects", {
@@ -200,7 +201,16 @@ export default function PipelinePage() {
             </select>
           </div>
           <div>
-            <label className="label">Vendedor</label>
+            <label className="label">Inmobiliaria</label>
+            <select className="input" value={filters.company || ""} onChange={(e) => setFilters((f) => ({ ...f, company: e.target.value || undefined }))}>
+              <option value="">Todas</option>
+              {companies.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.commercialName}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Asignado a</label>
             <select className="input" value={filters.vendedor || ""} onChange={(e) => setFilters((f) => ({ ...f, vendedor: e.target.value || undefined }))}>
               <option value="">Todos</option>
               {users.map((u: any) => (
