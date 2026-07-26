@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Star, Clock } from "lucide-react";
+import { Star, Clock, Handshake } from "lucide-react";
 import { AlertDot, TagPill, DemoBadge } from "@/components/ui";
 import { formatCurrency, formatDateTime, sourceLabels } from "@/lib/labels";
 import { AlertStatus, getAlertStatus } from "@/lib/alert";
@@ -15,6 +15,7 @@ export type ProspectCardData = {
   unitInterest?: string | null;
   budget?: number | null;
   assignedUser?: { name: string } | null;
+  advisor?: { name: string } | null;
   updatedAt: string;
   lastActivityAt: string;
   stage: Stage;
@@ -78,6 +79,13 @@ export default function ProspectCard({
         ))}
         {prospect.isDemo && <DemoBadge />}
       </div>
+
+      {prospect.advisor && (
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] text-calume-navy bg-calume-navy/5 rounded px-2 py-1 truncate">
+          <Handshake size={11} className="flex-shrink-0" />
+          <span className="truncate">{prospect.advisor.name}</span>
+        </div>
+      )}
 
       <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
         <span>{prospect.assignedUser?.name || "Sin asignar"}</span>
