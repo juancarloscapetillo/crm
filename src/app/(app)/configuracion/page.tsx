@@ -7,10 +7,12 @@ import TagsSection from "./TagsSection";
 import ProjectsSection from "./ProjectsSection";
 import UsersSection from "./UsersSection";
 import DemoDataSection from "./DemoDataSection";
+import IntegrationsSection from "./IntegrationsSection";
 
 const tabs = [
   { key: "tags", label: "Tags" },
   { key: "proyectos", label: "Proyectos" },
+  { key: "integraciones", label: "Integraciones" },
   { key: "usuarios", label: "Usuarios" },
   { key: "demo", label: "Datos demostrativos" },
 ];
@@ -43,6 +45,7 @@ export default function ConfiguracionPage() {
 
         {tab === "tags" && <TagsSection />}
         {tab === "proyectos" && <ProjectsSection />}
+        {tab === "integraciones" && <IntegrationsSection />}
         {tab === "usuarios" && isAdmin && <UsersSection />}
         {tab === "demo" && <DemoDataSection isAdmin={isAdmin} />}
       </div>

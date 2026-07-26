@@ -53,6 +53,9 @@ model User {
   active        Boolean  @default(true)
   createdAt     DateTime @default(now())
 
+  todoistApiTokenEnc String?
+  todoistProjectId   String?
+
   prospects       Prospect[]       @relation("AssignedUser")
   activities      Activity[]
   tasks           Task[]           @relation("AssignedTask")
@@ -188,6 +191,7 @@ model Task {
   completedAt    DateTime?
   assignedUserId String?
   assignedUser   User?     @relation("AssignedTask", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  todoistTaskId  String?
   createdAt      DateTime  @default(now())
 }
 

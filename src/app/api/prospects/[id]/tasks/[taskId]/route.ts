@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError } from "@/lib/api";
+import { updateTodoistTask, setTodoistTaskCompleted, deleteTodoistTask } from "@/lib/todoist";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
   try {
@@ -23,6 +24,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await prisma.prospect.update({ where: { id: params.id }, data: { lastActivityAt: new Date() } });
     }
 
+    if (task.todoistTaskId && task.assignedUserId) {
+      if (body.completed !== undefined) {
+        await setTodoistTaskCompleted(task.assignedUserId, task.todoistTaskId, body.completed);
+      } else if (body.title !== undefined || body.dueDate !== undefined) {
+        const prospect = await prisma.prospect.findUnique({ where: { id: params.id }, select: { name: true } });
+        await updateTodoistTask(
+          task.assignedUserId,
+          task.todoistTaskId,
+          prospect ? `${task.title} — ${prospect.name}` : task.title,
+          task.dueDate
+        );
+      }
+    }
+
     return NextResponse.json({ task });
   } catch (err) {
     return handleApiError(err);
@@ -32,7 +47,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
   try {
     await requireUser();
+    const task = await prisma.task.findUnique({ where: { id: params.taskId }, select: { todoistTaskId: true, assignedUserId: true } });
     await prisma.task.delete({ where: { id: params.taskId } });
+    if (task?.todoistTaskId && task.assignedUserId) {
+      await deleteTodoistTask(task.assignedUserId, task.todoistTaskId);
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     return handleApiError(err);
