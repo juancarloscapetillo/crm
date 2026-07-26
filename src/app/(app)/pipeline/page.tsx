@@ -42,7 +42,7 @@ function DroppableColumn({ id, collapsed, children }: { id: string; collapsed?: 
   return (
     <div
       ref={setNodeRef}
-      className={`${collapsed ? "w-48 flex-shrink-0" : "flex-1 min-w-[280px]"} rounded-xl2 p-2 transition-all ${isOver ? "bg-calume-navy/5" : ""}`}
+      className={`${collapsed ? "w-[115px] flex-shrink-0" : "flex-1 min-w-[280px]"} rounded-xl2 p-2 transition-all ${isOver ? "bg-calume-navy/5" : ""}`}
     >
       {children}
     </div>
