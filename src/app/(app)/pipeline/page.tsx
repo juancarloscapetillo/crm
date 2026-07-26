@@ -42,7 +42,7 @@ function DroppableColumn({ id, collapsed, children }: { id: string; collapsed?: 
   return (
     <div
       ref={setNodeRef}
-      className={`${collapsed ? "w-12 flex-shrink-0" : "flex-1 min-w-[280px]"} rounded-xl2 p-2 transition-all ${isOver ? "bg-calume-navy/5" : ""}`}
+      className={`${collapsed ? "w-16 flex-shrink-0" : "flex-1 min-w-[280px]"} rounded-xl2 p-2 transition-all ${isOver ? "bg-calume-navy/5" : ""}`}
     >
       {children}
     </div>
@@ -267,13 +267,13 @@ export default function PipelinePage() {
                 {collapsed[FAVORITES_ID] ? (
                   <button
                     onClick={() => toggleCollapse(FAVORITES_ID)}
-                    className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-3 hover:bg-gray-50"
+                    className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-4 hover:bg-gray-50"
                     title="Expandir Favoritos"
                   >
-                    <ChevronRight size={14} className="text-gray-400" />
-                    <Star size={14} className="fill-calume-gold text-calume-gold" />
-                    <span className="text-[11px] font-medium bg-gray-100 rounded-full px-1.5 py-0.5">{favoriteItems.length}</span>
-                    <span className="text-[11px] text-calume-gold font-semibold [writing-mode:vertical-rl] rotate-180 mt-1">
+                    <ChevronRight size={16} className="text-gray-400" />
+                    <Star size={16} className="fill-calume-gold text-calume-gold" />
+                    <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{favoriteItems.length}</span>
+                    <span className="text-xs text-calume-gold font-semibold [writing-mode:vertical-rl] rotate-180 mt-1">
                       Favoritos
                     </span>
                   </button>
@@ -321,16 +321,16 @@ export default function PipelinePage() {
                     {collapsed[stage] ? (
                       <button
                         onClick={() => toggleCollapse(stage)}
-                        className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-3 hover:bg-gray-50"
+                        className="w-full h-full min-h-[70vh] bg-white rounded-xl2 border border-gray-200 flex flex-col items-center gap-2 pt-4 hover:bg-gray-50"
                         title={`Expandir ${stageLabels[stage]}`}
                       >
-                        <ChevronRight size={14} className="text-gray-400" />
-                        <span className="text-[11px] font-medium bg-gray-100 rounded-full px-1.5 py-0.5">{items.length}</span>
+                        <ChevronRight size={16} className="text-gray-400" />
+                        <span className="text-xs font-medium bg-gray-100 rounded-full px-2 py-0.5">{items.length}</span>
                         {alertCount > 0 && stage !== "GANADO" && stage !== "PERDIDO" && (
-                          <span className="text-[11px] text-alert-red font-medium">⚠</span>
+                          <span className="text-xs text-alert-red font-medium">⚠</span>
                         )}
                         <span
-                          className="text-[11px] font-semibold [writing-mode:vertical-rl] rotate-180 mt-1"
+                          className="text-xs font-semibold [writing-mode:vertical-rl] rotate-180 mt-1"
                           style={{ color: stageColors[stage] }}
                         >
                           {stageLabels[stage]}
