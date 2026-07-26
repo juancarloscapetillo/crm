@@ -160,7 +160,26 @@ export async function importLegacyProspects(csvText: string, opts: { force?: boo
   }
 
   const rows = parseCsv(csvText).filter((r) => r.some((c) => c.trim() !== ""));
-  const [, ...data] = rows;
+  const [header, ...data] = rows;
+
+  const headerIndex = new Map<string, number>();
+  header.forEach((h, i) => {
+    const key = norm(h);
+    if (key) headerIndex.set(key, i);
+  });
+  function col(r: string[], ...names: string[]): string {
+    for (const name of names) {
+      const i = headerIndex.get(norm(name));
+      if (i !== undefined) return (r[i] ?? "").trim();
+    }
+    return "";
+  }
+  // Legacy files (the original broker-tracking export) have no dedicated
+  // "Asesor"/"Inmobiliaria" columns — advisor+company are encoded as
+  // "Asesor - Inmobiliaria" inside "Nombre del Cliente", and the real
+  // client name is embedded in "Comentarios" before "//". New files can
+  // use explicit "Asesor" / "Inmobiliaria" columns instead.
+  const legacyMode = !headerIndex.has(norm("Asesor"));
 
   const tagCache = new Map<string, string>();
   const projectCache = new Map<string, string>();
@@ -221,23 +240,47 @@ export async function importLegacyProspects(csvText: string, opts: { force?: boo
   for (let idx = 0; idx < data.length; idx++) {
     const r = data[idx];
     const rowNum = idx + 2;
-    const [
-      nombreCliente,
-      proyecto,
-      etiqueta,
-      fechaInicio,
-      ultimoSeguimiento,
-      tagsCol,
-      asignadoA,
-      ,
-      precioEstimado,
-      comentarios,
-    ] = r.map((c) => (c ?? "").trim());
+
+    const nombreCliente = col(r, "Nombre del Cliente", "Cliente");
+    const proyecto = col(r, "Proyecto");
+    const etiqueta = col(r, "Etapa", "Etiquetas Personalizadas");
+    const fechaInicio = col(r, "Fecha de Inicio", "Fecha de Ingreso");
+    const ultimoSeguimiento = col(r, "Ultimo de Seguimiento", "Ultimo Seguimiento");
+    const tagsCol = col(r, "Tags", "Fuente");
+    const asignadoA = col(r, "Asignado a");
+    const asesorCol = col(r, "Asesor");
+    const inmobiliariaCol = col(r, "Inmobiliaria");
+    const valorEstimadoCol = col(r, "Valor Estimado", "Precio Estimado");
+    const comentarios = col(r, "Comentarios");
 
     try {
-      const dashIdx = nombreCliente.indexOf(" - ");
-      const brokerName = dashIdx >= 0 ? nombreCliente.slice(0, dashIdx).trim() : nombreCliente.trim();
-      const companyPartRaw = dashIdx >= 0 ? nombreCliente.slice(dashIdx + 3).trim() : "";
+      let brokerName: string;
+      let companyPartRaw: string;
+      let clientName: string;
+      let noteText: string;
+
+      if (legacyMode) {
+        const dashIdx = nombreCliente.indexOf(" - ");
+        brokerName = dashIdx >= 0 ? nombreCliente.slice(0, dashIdx).trim() : nombreCliente.trim();
+        companyPartRaw = dashIdx >= 0 ? nombreCliente.slice(dashIdx + 3).trim() : "";
+
+        const sepIdx = comentarios.indexOf("//");
+        if (comentarios === "") {
+          clientName = `Cliente sin nombre (${brokerName || "sin asesor"})`;
+          noteText = "Registro importado sin nombre de cliente ni comentarios en el archivo original.";
+        } else if (sepIdx >= 0) {
+          clientName = comentarios.slice(0, sepIdx).trim() || `Cliente sin nombre (${brokerName || "sin asesor"})`;
+          noteText = comentarios.slice(sepIdx + 2).trim();
+        } else {
+          clientName = comentarios;
+          noteText = "";
+        }
+      } else {
+        brokerName = asesorCol;
+        companyPartRaw = inmobiliariaCol;
+        clientName = nombreCliente || `Cliente sin nombre (${brokerName || "sin asesor"})`;
+        noteText = comentarios;
+      }
 
       const assignedUserId = asignadoA ? await findUserByName(asignadoA) : null;
       const assignedUserName = assignedUserId
@@ -251,20 +294,6 @@ export async function importLegacyProspects(csvText: string, opts: { force?: boo
         const companyIsGeneric = companyPartRaw === "" || norm(companyPartRaw).startsWith("independiente");
         if (!companyIsGeneric) companyId = await getOrCreateCompany(companyPartRaw);
         advisorId = await getOrCreateAdvisor(brokerName, companyId);
-      }
-
-      let clientName: string;
-      let noteText: string;
-      const sepIdx = comentarios.indexOf("//");
-      if (comentarios === "") {
-        clientName = `Cliente sin nombre (${brokerName || "sin asesor"})`;
-        noteText = "Registro importado sin nombre de cliente ni comentarios en el archivo original.";
-      } else if (sepIdx >= 0) {
-        clientName = comentarios.slice(0, sepIdx).trim() || `Cliente sin nombre (${brokerName || "sin asesor"})`;
-        noteText = comentarios.slice(sepIdx + 2).trim();
-      } else {
-        clientName = comentarios;
-        noteText = "";
       }
 
       const stage = STAGE_MAP[norm(etiqueta)];
@@ -288,10 +317,12 @@ export async function importLegacyProspects(csvText: string, opts: { force?: boo
       const entryDate = parseDate(fechaInicio) ?? new Date();
       const lastActivityAt = parseDate(ultimoSeguimiento) ?? entryDate;
 
-      const estimatedValueNum = parseFloat(precioEstimado.replace(/[^0-9.]/g, ""));
+      const estimatedValueNum = parseFloat(valorEstimadoCol.replace(/[^0-9.]/g, ""));
       const estimatedValue = estimatedValueNum > 0 ? estimatedValueNum : null;
 
-      const originSummary = `[Importado del histórico de trabajo. Referencia original: "${nombreCliente || "—"}"]`;
+      const originSummary = legacyMode
+        ? `[Importado del histórico de trabajo. Referencia original: "${nombreCliente || "—"}"]`
+        : "[Importado del histórico de trabajo.]";
       const notes = [noteText, originSummary].filter(Boolean).join("\n\n");
 
       const prospect = await prisma.prospect.create({

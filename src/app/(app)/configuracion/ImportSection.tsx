@@ -56,25 +56,22 @@ export default function ImportSection() {
         <h3 className="text-sm font-semibold text-gray-900">Importar prospectos desde CSV</h3>
         <p className="text-xs text-gray-500 mt-1">
           Sube un archivo con tus prospectos ya trabajados (de un Excel, Notion, u otro tablero de seguimiento). El
-          archivo debe tener estas 10 columnas, en este orden:
+          orden de las columnas no importa, pero deben tener estos nombres de encabezado:
         </p>
         <div className="mt-3 overflow-x-auto">
           <table className="text-xs w-full border border-gray-100 rounded">
             <tbody>
               <tr className="border-b border-gray-100">
                 <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Nombre del Cliente</td>
-                <td className="px-2 py-1.5 text-gray-500">
-                  Asesor + inmobiliaria, ej. <code>Juan Pérez - Century21</code>. Si es un lead directo (sin asesor), pon
-                  el nombre del vendedor tal cual está en el CRM.
-                </td>
+                <td className="px-2 py-1.5 text-gray-500">El nombre real del prospecto.</td>
               </tr>
               <tr className="border-b border-gray-100">
                 <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Proyecto</td>
                 <td className="px-2 py-1.5 text-gray-500">Nombre del proyecto (se crea si no existe).</td>
               </tr>
               <tr className="border-b border-gray-100">
-                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Etiquetas Personalizadas</td>
-                <td className="px-2 py-1.5 text-gray-500">Etapa: Informes, Visita, Cotización o Cerrada.</td>
+                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Etapa</td>
+                <td className="px-2 py-1.5 text-gray-500">Informes, Visita, Cotización o Cerrada.</td>
               </tr>
               <tr className="border-b border-gray-100">
                 <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Fecha de Inicio</td>
@@ -92,24 +89,34 @@ export default function ImportSection() {
                 <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Asignado a</td>
                 <td className="px-2 py-1.5 text-gray-500">Nombre completo del vendedor, tal cual está registrado en el CRM.</td>
               </tr>
-              <tr className="border-b border-gray-100">
-                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Precio Estimado</td>
-                <td className="px-2 py-1.5 text-gray-500">Se ignora (deja "$" o vacío).</td>
+              <tr className="border-b border-gray-100 bg-calume-navy/5">
+                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Asesor</td>
+                <td className="px-2 py-1.5 text-gray-500">
+                  Nombre del asesor externo que trae al cliente (déjalo vacío si es venta directa). Si escribes el
+                  nombre del vendedor asignado, se marca como venta directa.
+                </td>
+              </tr>
+              <tr className="border-b border-gray-100 bg-calume-navy/5">
+                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Inmobiliaria</td>
+                <td className="px-2 py-1.5 text-gray-500">Empresa del asesor (opcional, déjalo vacío si es independiente).</td>
               </tr>
               <tr className="border-b border-gray-100">
-                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">(sin nombre, 9ª columna)</td>
-                <td className="px-2 py-1.5 text-gray-500">Valor estimado en pesos (número, opcional).</td>
+                <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Valor Estimado</td>
+                <td className="px-2 py-1.5 text-gray-500">Valor estimado de la venta en pesos (número, opcional).</td>
               </tr>
               <tr>
                 <td className="px-2 py-1.5 font-medium text-gray-700 whitespace-nowrap">Comentarios</td>
-                <td className="px-2 py-1.5 text-gray-500">
-                  Nombre real del cliente, luego <code>//</code>, luego tus notas. Ej.{" "}
-                  <code>María López// Interesada en 2 recámaras</code>.
-                </td>
+                <td className="px-2 py-1.5 text-gray-500">Notas libres sobre el seguimiento.</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p className="text-[11px] text-gray-400 mt-2">
+          También aceptamos el formato del CRM anterior, donde el asesor y la inmobiliaria venían combinados en
+          "Nombre del Cliente" (ej. "Juan Pérez - Century21") y el nombre real del cliente iba dentro de Comentarios
+          antes de "//" — si tu archivo no tiene columnas de Asesor/Inmobiliaria, se detecta e interpreta así
+          automáticamente.
+        </p>
         <a
           href="/templates/plantilla-importacion-prospectos.csv"
           download
