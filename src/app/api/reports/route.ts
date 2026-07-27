@@ -16,11 +16,9 @@ export async function GET(req: NextRequest) {
     const tag = sp.get("tag");
     const source = sp.get("source");
     const project = sp.get("project");
-    const includeDemo = sp.get("includeDemo") === "true";
-
     const and: Prisma.ProspectWhereInput[] = [];
     if (user.role !== "ADMIN") and.push({ assignedUserId: user.id });
-    if (!includeDemo) and.push({ isDemo: false });
+    and.push({ isDemo: false });
     if (start) and.push({ entryDate: { gte: start, lte: end } });
     else and.push({ entryDate: { lte: end } });
     if (vendedor) and.push({ assignedUserId: vendedor });
@@ -33,7 +31,7 @@ export async function GET(req: NextRequest) {
       include: { assignedUser: true, advisor: { include: { company: true } }, company: true, tags: { include: { tag: true } } },
     });
 
-    const marketingWhere: Prisma.MarketingInvestmentWhereInput = { isDemo: includeDemo ? undefined : false };
+    const marketingWhere: Prisma.MarketingInvestmentWhereInput = { isDemo: false };
     if (start) marketingWhere.date = { gte: start, lte: end };
     else marketingWhere.date = { lte: end };
     if (project) marketingWhere.projectId = project;

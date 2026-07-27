@@ -3,7 +3,7 @@
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Star, Clock, Handshake } from "lucide-react";
-import { AlertDot, TagPill, DemoBadge } from "@/components/ui";
+import { AlertDot, TagPill } from "@/components/ui";
 import { formatCurrency, formatDateTime, sourceLabels } from "@/lib/labels";
 import { AlertStatus, getAlertStatus } from "@/lib/alert";
 import { Stage } from "@prisma/client";
@@ -25,7 +25,6 @@ export type ProspectCardData = {
   sourceType: keyof typeof sourceLabels;
   alertStatus: AlertStatus;
   isFavorite: boolean;
-  isDemo?: boolean;
 };
 
 export default function ProspectCard({
@@ -77,7 +76,6 @@ export default function ProspectCard({
         {prospect.tags.slice(0, 3).map((t) => (
           <TagPill key={t.tag.id} name={t.tag.name} color={t.tag.color} />
         ))}
-        {prospect.isDemo && <DemoBadge />}
       </div>
 
       {prospect.advisor && (

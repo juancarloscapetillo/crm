@@ -10,7 +10,6 @@ export type Filters = {
   tag?: string;
   source?: string;
   project?: string;
-  includeDemo?: string;
 };
 
 const sourceOptions = [
@@ -110,14 +109,6 @@ export default function FilterBar({
           ))}
         </select>
       </div>
-      <label className="flex items-center gap-2 text-xs text-gray-600 pb-2">
-        <input
-          type="checkbox"
-          checked={filters.includeDemo === "true"}
-          onChange={(e) => onChange({ ...filters, includeDemo: e.target.checked ? "true" : undefined })}
-        />
-        Incluir datos demostrativos
-      </label>
       {(filters.vendedor || filters.tag || filters.source || filters.project || filters.range !== "todo") && (
         <button
           className="btn-secondary text-xs"

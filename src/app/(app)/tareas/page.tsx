@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { CheckCircle2, Circle } from "lucide-react";
-import { PageHeader, EmptyState, AlertDot, DemoBadge } from "@/components/ui";
+import { PageHeader, EmptyState, AlertDot } from "@/components/ui";
 import { useFetch } from "@/lib/hooks";
 import { formatDate } from "@/lib/labels";
 import { toQueryString } from "@/lib/queryString";
@@ -95,7 +95,6 @@ export default function TareasPage() {
                         Vence: {formatDate(t.dueDate)} {overdue && "(vencida)"}
                       </span>
                     )}
-                    {t.prospect.isDemo && <DemoBadge />}
                   </div>
                 </div>
               </div>

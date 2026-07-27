@@ -178,9 +178,3 @@ export function ConfirmDialog({
     </div>
   );
 }
-
-export function DemoBadge() {
-  return (
-    <span className="badge bg-amber-100 text-amber-700 border border-amber-200">⚠ Dato demostrativo</span>
-  );
-}

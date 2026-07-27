@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake } from "lucide-react";
-import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog, DemoBadge } from "@/components/ui";
+import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick } from "@/lib/hooks";
@@ -192,7 +192,6 @@ export default function ProspectProfilePage() {
         <div className="flex flex-wrap items-center gap-3">
           <StageBadge stage={prospect.stage} />
           <AlertDot status={getAlertStatus(prospect.lastActivityAt, prospect.stage)} showLabel />
-          {prospect.isDemo && <DemoBadge />}
           {prospect.tags.map((t: any) => (
             <TagPill key={t.tag.id} name={t.tag.name} color={t.tag.color} />
           ))}

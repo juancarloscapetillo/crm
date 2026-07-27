@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Plus, Trash2 } from "lucide-react";
-import { PageHeader, Modal, StatCard, EmptyState, ConfirmDialog, DemoBadge } from "@/components/ui";
+import { PageHeader, Modal, StatCard, EmptyState, ConfirmDialog } from "@/components/ui";
 import { useFetch, useCatalogs } from "@/lib/hooks";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/labels";
 
@@ -15,8 +15,7 @@ const emptyForm = {
 };
 
 export default function MarketingPage() {
-  const [includeDemo, setIncludeDemo] = useState(false);
-  const { data, loading, reload } = useFetch<{ records: any[] }>(`/api/marketing?includeDemo=${includeDemo}`, [includeDemo]);
+  const { data, loading, reload } = useFetch<{ records: any[] }>("/api/marketing");
   const { projects } = useCatalogs();
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -87,10 +86,6 @@ export default function MarketingPage() {
         }
       />
       <div className="p-4 sm:p-6 space-y-6">
-        <label className="flex items-center gap-2 text-xs text-gray-600">
-          <input type="checkbox" checked={includeDemo} onChange={(e) => setIncludeDemo(e.target.checked)} />
-          Incluir datos demostrativos
-        </label>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <StatCard label="Inversión total" value={formatCurrency(totals.amount)} accent="gold" />
           <StatCard label="CAC" value={totals.cac !== null ? formatCurrency(totals.cac) : "Datos insuficientes"} />
@@ -124,7 +119,7 @@ export default function MarketingPage() {
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2">{formatDate(r.date)}</td>
                   <td className="px-3 py-2">
-                    {r.campaign} {r.isDemo && <DemoBadge />}
+                    {r.campaign}
                   </td>
                   <td className="px-3 py-2 text-gray-500">{r.channel || "—"}</td>
                   <td className="px-3 py-2 text-gray-500">{r.project?.name || "—"}</td>

@@ -6,7 +6,6 @@ import { PageHeader } from "@/components/ui";
 import TagsSection from "./TagsSection";
 import ProjectsSection from "./ProjectsSection";
 import UsersSection from "./UsersSection";
-import DemoDataSection from "./DemoDataSection";
 import IntegrationsSection from "./IntegrationsSection";
 import MetaAdsSection from "./MetaAdsSection";
 import ImportSection from "./ImportSection";
@@ -18,7 +17,6 @@ const tabs = [
   { key: "meta-ads", label: "Meta Ads" },
   { key: "usuarios", label: "Usuarios" },
   { key: "importar", label: "Importar" },
-  { key: "demo", label: "Datos demostrativos" },
 ];
 
 export default function ConfiguracionPage() {
@@ -28,7 +26,7 @@ export default function ConfiguracionPage() {
 
   return (
     <div>
-      <PageHeader title="Configuración" subtitle="Catálogos, tags, usuarios y datos demostrativos" />
+      <PageHeader title="Configuración" subtitle="Catálogos, tags, usuarios e integraciones" />
       <div className="p-4 sm:p-6 space-y-4">
         <div className="flex gap-2 border-b border-gray-200">
           {tabs.map((t) => {
@@ -53,7 +51,6 @@ export default function ConfiguracionPage() {
         {tab === "meta-ads" && isAdmin && <MetaAdsSection />}
         {tab === "usuarios" && isAdmin && <UsersSection />}
         {tab === "importar" && isAdmin && <ImportSection />}
-        {tab === "demo" && <DemoDataSection isAdmin={isAdmin} />}
       </div>
     </div>
   );

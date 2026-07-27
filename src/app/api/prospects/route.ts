@@ -53,8 +53,7 @@ function buildWhere(searchParams: URLSearchParams, userId: string, role: string)
     });
   }
 
-  const includeDemo = searchParams.get("includeDemo");
-  if (includeDemo !== "true") and.push({ isDemo: false });
+  and.push({ isDemo: false });
 
   const favorite = searchParams.get("favorite");
   if (favorite === "true") and.push({ favoritedBy: { some: { userId } } });

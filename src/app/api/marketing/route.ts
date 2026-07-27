@@ -5,9 +5,8 @@ import { requireUser, handleApiError, jsonError } from "@/lib/api";
 export async function GET(req: NextRequest) {
   try {
     await requireUser();
-    const includeDemo = req.nextUrl.searchParams.get("includeDemo") === "true";
     const records = await prisma.marketingInvestment.findMany({
-      where: includeDemo ? {} : { isDemo: false },
+      where: { isDemo: false },
       include: { project: true },
       orderBy: { date: "desc" },
     });
