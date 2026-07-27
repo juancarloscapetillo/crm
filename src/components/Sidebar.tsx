@@ -20,7 +20,7 @@ const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
   { href: "/tareas", label: "Tareas y seguimientos", icon: ListChecks },
-  { href: "/asesores", label: "Asesores", icon: UserCog },
+  { href: "/asesores", label: "Asesores e inmobiliarias", icon: UserCog },
   { href: "/marketing", label: "Marketing", icon: Megaphone },
   { href: "/configuracion", label: "Configuración", icon: Settings },
 ];
@@ -70,7 +70,10 @@ export default function Sidebar({
       </div>
       <nav className={`flex-1 overflow-y-auto py-4 space-y-1 ${isCollapsed ? "px-2" : "px-2"}`}>
         {nav.map((item) => {
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          const active =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href) || (item.href === "/asesores" && pathname.startsWith("/empresas"));
           const Icon = item.icon;
           return (
             <Link

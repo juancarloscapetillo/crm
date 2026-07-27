@@ -8,9 +8,16 @@ import { PageHeader, Modal, EmptyState } from "@/components/ui";
 import { useFetch } from "@/lib/hooks";
 import { formatCurrency, formatPercent } from "@/lib/labels";
 
+const tabs = [
+  { key: "asesores", label: "Asesores" },
+  { key: "inmobiliarias", label: "Inmobiliarias" },
+];
+
 export default function AsesoresPage() {
+  const [tab, setTab] = useState<"asesores" | "inmobiliarias">("asesores");
+
   const { data, loading, reload } = useFetch<{ advisors: any[] }>("/api/advisors");
-  const { data: companiesData, reload: reloadCompanies } = useFetch<{ companies: any[] }>("/api/companies");
+  const { data: companiesData, loading: loadingCompanies, reload: reloadCompanies } = useFetch<{ companies: any[] }>("/api/companies");
   const companies = companiesData?.companies || [];
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", companyId: "" });
@@ -71,61 +78,131 @@ export default function AsesoresPage() {
   return (
     <div>
       <PageHeader
-        title="Asesores externos"
-        subtitle="Asesores inmobiliarios que generan prospectos para Calume"
+        title={tab === "asesores" ? "Asesores externos" : "Inmobiliarias"}
+        subtitle={
+          tab === "asesores"
+            ? "Asesores inmobiliarios que generan prospectos para Calume"
+            : "Empresas inmobiliarias con las que trabajan tus asesores externos"
+        }
         actions={
-          <div className="flex items-center gap-2">
-            <button className="btn-secondary" onClick={() => setShowCreateCompany(true)}>
-              <Building2 size={16} /> Nueva inmobiliaria
-            </button>
+          tab === "asesores" ? (
             <button className="btn-gold" onClick={() => setShowCreate(true)}>
               <Plus size={16} /> Nuevo asesor
             </button>
-          </div>
+          ) : (
+            <button className="btn-gold" onClick={() => setShowCreateCompany(true)}>
+              <Building2 size={16} /> Nueva inmobiliaria
+            </button>
+          )
         }
       />
-      <div className="p-4 sm:p-6">
-        {loading && <p className="text-sm text-gray-500">Cargando...</p>}
-        {!loading && advisors.length === 0 && (
-          <EmptyState icon={<UserCog size={40} />} title="Aún no hay asesores registrados" />
-        )}
-        <div className="overflow-x-auto card">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-              <tr>
-                <th className="text-left px-4 py-2">Nombre</th>
-                <th className="text-left px-4 py-2">Empresa</th>
-                <th className="text-center px-4 py-2">Estatus</th>
-                <th className="text-center px-4 py-2">Prospectos</th>
-                <th className="text-center px-4 py-2">Ventas</th>
-                <th className="text-center px-4 py-2">Conversión</th>
-                <th className="text-center px-4 py-2">Valor vendido</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {advisors.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">
-                    <Link href={`/asesores/${a.id}`} className="text-calume-navy font-medium hover:underline">
-                      {a.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-gray-500">{a.company?.name || "—"}</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className={`badge ${a.isActiveByActivity ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                      {a.isActiveByActivity ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-center">{a.prospectCount}</td>
-                  <td className="px-4 py-2 text-center">{a.salesCount}</td>
-                  <td className="px-4 py-2 text-center">{formatPercent(a.conversion)}</td>
-                  <td className="px-4 py-2 text-center">{formatCurrency(a.revenue)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="px-4 sm:px-6 pt-4">
+        <div className="flex gap-2 border-b border-gray-200">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key as "asesores" | "inmobiliarias")}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+                tab === t.key ? "border-calume-navy text-calume-navy" : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {tab === "asesores" ? (
+        <div className="p-4 sm:p-6">
+          {loading && <p className="text-sm text-gray-500">Cargando...</p>}
+          {!loading && advisors.length === 0 && (
+            <EmptyState icon={<UserCog size={40} />} title="Aún no hay asesores registrados" />
+          )}
+          {!loading && advisors.length > 0 && (
+            <div className="overflow-x-auto card">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                  <tr>
+                    <th className="text-left px-4 py-2">Nombre</th>
+                    <th className="text-left px-4 py-2">Empresa</th>
+                    <th className="text-center px-4 py-2">Estatus</th>
+                    <th className="text-center px-4 py-2">Prospectos</th>
+                    <th className="text-center px-4 py-2">Ventas</th>
+                    <th className="text-center px-4 py-2">Conversión</th>
+                    <th className="text-center px-4 py-2">Valor vendido</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {advisors.map((a) => (
+                    <tr key={a.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2">
+                        <Link href={`/asesores/${a.id}`} className="text-calume-navy font-medium hover:underline">
+                          {a.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2 text-gray-500">{a.company?.name || "—"}</td>
+                      <td className="px-4 py-2 text-center">
+                        <span className={`badge ${a.isActiveByActivity ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {a.isActiveByActivity ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-center">{a.prospectCount}</td>
+                      <td className="px-4 py-2 text-center">{a.salesCount}</td>
+                      <td className="px-4 py-2 text-center">{formatPercent(a.conversion)}</td>
+                      <td className="px-4 py-2 text-center">{formatCurrency(a.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="p-4 sm:p-6">
+          {loadingCompanies && <p className="text-sm text-gray-500">Cargando...</p>}
+          {!loadingCompanies && companies.length === 0 && (
+            <EmptyState icon={<Building2 size={40} />} title="Aún no hay inmobiliarias registradas" />
+          )}
+          {!loadingCompanies && companies.length > 0 && (
+            <div className="overflow-x-auto card">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                  <tr>
+                    <th className="text-left px-4 py-2">Nombre comercial</th>
+                    <th className="text-center px-4 py-2">Estatus</th>
+                    <th className="text-center px-4 py-2">Asesores</th>
+                    <th className="text-center px-4 py-2">Prospectos</th>
+                    <th className="text-center px-4 py-2">Ventas</th>
+                    <th className="text-center px-4 py-2">Conversión</th>
+                    <th className="text-center px-4 py-2">Valor vendido</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {companies.map((c: any) => (
+                    <tr key={c.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2">
+                        <Link href={`/empresas/${c.id}`} className="text-calume-navy font-medium hover:underline">
+                          {c.commercialName}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <span className={`badge ${c.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {c.active ? "Activa" : "Inactiva"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-center">{c.advisorCount}</td>
+                      <td className="px-4 py-2 text-center">{c.prospectCount}</td>
+                      <td className="px-4 py-2 text-center">{c.salesCount}</td>
+                      <td className="px-4 py-2 text-center">{formatPercent(c.conversion)}</td>
+                      <td className="px-4 py-2 text-center">{formatCurrency(c.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo asesor">
         <form onSubmit={handleCreate} className="space-y-3">
