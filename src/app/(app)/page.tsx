@@ -21,6 +21,10 @@ const FUNNEL_ICONS: Partial<Record<Stage, any>> = {
   GANADO: Trophy,
 };
 
+// Fixed decorative widths per funnel position — the shape never changes
+// with the data, only the numbers in the table do.
+const FUNNEL_BAND_WIDTHS = [100, 78, 56, 34];
+
 const PIE_COLORS = ["#253574", "#F6B436", "#5B8DEF", "#9B6FD9", "#3FBE7A", "#E15B5B", "#F0B429"];
 
 type DashboardData = {
@@ -289,11 +293,11 @@ function ConversionFunnel({ funnel }: { funnel: DashboardData["funnel"] }) {
           <div className="flex flex-col items-center">
             {funnel.map((f, i) => {
               const Icon = FUNNEL_ICONS[f.stage];
-              const widthPct = Math.max(34, Math.round((f.percentAccumulated ?? 0) * 100));
+              const widthPct = FUNNEL_BAND_WIDTHS[i] ?? FUNNEL_BAND_WIDTHS[FUNNEL_BAND_WIDTHS.length - 1];
               return (
                 <div
                   key={f.stage}
-                  className="flex items-center justify-center gap-2 text-white font-semibold text-sm py-4 transition-all"
+                  className="flex items-center justify-center gap-2 text-white font-semibold text-sm py-4"
                   style={{
                     width: `${widthPct}%`,
                     background: stageColors[f.stage],
