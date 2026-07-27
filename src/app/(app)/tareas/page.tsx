@@ -95,6 +95,7 @@ export default function TareasPage() {
                         Vence: {formatDate(t.dueDate)} {overdue && "(vencida)"}
                       </span>
                     )}
+                    <span>Creada por: {t.createdBy?.name || "—"}</span>
                   </div>
                 </div>
               </div>

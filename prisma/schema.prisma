@@ -59,6 +59,7 @@ model User {
   prospects       Prospect[]       @relation("AssignedUser")
   activities      Activity[]
   tasks           Task[]           @relation("AssignedTask")
+  createdTasks    Task[]           @relation("CreatedTask")
   favorites       Favorite[]
   createdMarketing MarketingInvestment[]
 }
@@ -205,6 +206,8 @@ model Task {
   completedAt    DateTime?
   assignedUserId String?
   assignedUser   User?     @relation("AssignedTask", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdBy      User?     @relation("CreatedTask", fields: [createdById], references: [id], onDelete: SetNull)
   todoistTaskId  String?
   createdAt      DateTime  @default(now())
 }

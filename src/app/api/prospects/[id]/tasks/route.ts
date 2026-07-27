@@ -17,7 +17,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         title: body.title.trim(),
         dueDate: body.dueDate ? new Date(body.dueDate) : null,
         assignedUserId: body.assignedUserId || user.id,
+        createdById: user.id,
       },
+      include: { createdBy: true, assignedUser: true },
     });
 
     await prisma.activity.create({

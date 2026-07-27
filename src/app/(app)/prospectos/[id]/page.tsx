@@ -313,6 +313,7 @@ export default function ProspectProfilePage() {
                     <span className="flex-1">
                       <span className={t.completed ? "line-through text-gray-400" : "text-gray-800"}>{t.title}</span>
                       {t.dueDate && <span className="block text-[11px] text-gray-400">Vence: {formatDate(t.dueDate)}</span>}
+                      <span className="block text-[11px] text-gray-400">Creada por: {t.createdBy?.name || "—"}</span>
                     </span>
                   </button>
                 ))}

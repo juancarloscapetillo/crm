@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       include: {
         prospect: { select: { id: true, name: true, stage: true, lastActivityAt: true } },
         assignedUser: true,
+        createdBy: true,
       },
       orderBy: [{ completed: "asc" }, { dueDate: "asc" }],
     });

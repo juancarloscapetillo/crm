@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         company: true,
         tags: { include: { tag: true } },
         favoritedBy: { where: { userId: user.id } },
-        tasks: { orderBy: { dueDate: "asc" } },
+        tasks: { orderBy: { dueDate: "asc" }, include: { createdBy: true, assignedUser: true } },
         attachments: { select: { id: true, filename: true, mimeType: true, size: true, createdAt: true, uploadedBy: true } },
         activities: { include: { user: true }, orderBy: { createdAt: "desc" } },
       },

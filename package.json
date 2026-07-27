@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:backfill-max-stage": "tsx prisma/backfillMaxStage.ts",
+    "db:backfill-task-creator": "tsx prisma/backfillTaskCreator.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
