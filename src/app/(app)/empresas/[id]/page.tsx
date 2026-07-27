@@ -1,19 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { PageHeader, Modal, StageBadge } from "@/components/ui";
+import { Trash2 } from "lucide-react";
+import { PageHeader, Modal, StageBadge, ConfirmDialog } from "@/components/ui";
 import { useFetch } from "@/lib/hooks";
 import { formatCurrency, formatPercent, formatDate } from "@/lib/labels";
 
 export default function EmpresaProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data, loading, reload } = useFetch<{ company: any }>(`/api/companies/${id}`);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const company = data?.company;
   const [form, setForm] = useState<any>(null);
+
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/asesores");
+    }
+  }
 
   function openEdit() {
     setForm({
@@ -45,6 +56,16 @@ export default function EmpresaProfilePage() {
     reload();
   }
 
+  async function handleDelete() {
+    const res = await fetch(`/api/companies/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast.error((await res.json()).error || "No se pudo eliminar");
+      return;
+    }
+    toast.success("Inmobiliaria eliminada");
+    router.push("/asesores");
+  }
+
   if (loading) return <div className="p-6 text-sm text-gray-500">Cargando...</div>;
   if (!company) return <div className="p-6 text-sm text-gray-500">Empresa no encontrada.</div>;
 
@@ -53,7 +74,15 @@ export default function EmpresaProfilePage() {
       <PageHeader
         title={company.commercialName}
         subtitle={company.legalName || undefined}
-        actions={<button className="btn-secondary" onClick={openEdit}>Editar</button>}
+        onBack={handleBack}
+        actions={
+          <div className="flex items-center gap-2">
+            <button className="btn-secondary" onClick={openEdit}>Editar</button>
+            <button className="btn-danger" onClick={() => setShowDelete(true)} title="Eliminar inmobiliaria">
+              <Trash2 size={15} />
+            </button>
+          </div>
+        }
       />
       <div className="p-4 sm:p-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -161,6 +190,14 @@ export default function EmpresaProfilePage() {
           </form>
         </Modal>
       )}
+
+      <ConfirmDialog
+        open={showDelete}
+        title="Eliminar inmobiliaria"
+        message="Esta acción no se puede deshacer. Los asesores y prospectos ligados a esta empresa no se eliminarán, pero quedarán sin inmobiliaria asignada."
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }
