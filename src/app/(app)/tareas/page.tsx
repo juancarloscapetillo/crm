@@ -25,11 +25,18 @@ const alertOptions = [
 export default function TareasPage() {
   const [completed, setCompleted] = useState("false");
   const [alert, setAlert] = useState("");
+  const [creator, setCreator] = useState("");
   const qs = toQueryString({ completed });
   const { data, loading, reload } = useFetch<{ tasks: any[] }>(`/api/tasks${qs}`, [qs]);
 
-  let tasks = data?.tasks || [];
+  const allTasks = data?.tasks || [];
+  const creatorOptions = Array.from(
+    new Map(allTasks.filter((t) => t.createdBy).map((t) => [t.createdBy.id, t.createdBy.name])).entries()
+  ).map(([id, name]) => ({ value: id, label: name }));
+
+  let tasks = allTasks;
   if (alert) tasks = tasks.filter((t) => t.prospectAlertStatus === alert);
+  if (creator) tasks = tasks.filter((t) => t.createdBy?.id === creator);
 
   const now = new Date();
 
@@ -62,6 +69,15 @@ export default function TareasPage() {
             <label className="label">Semáforo del prospecto</label>
             <select className="input" value={alert} onChange={(e) => setAlert(e.target.value)}>
               {alertOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Creado por</label>
+            <select className="input" value={creator} onChange={(e) => setCreator(e.target.value)}>
+              <option value="">Todos</option>
+              {creatorOptions.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
