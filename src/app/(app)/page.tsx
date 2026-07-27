@@ -5,13 +5,21 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts";
-import { Download, FileSpreadsheet, Printer } from "lucide-react";
+import { Download, FileSpreadsheet, Printer, FileText, Home, Handshake, Trophy } from "lucide-react";
 import { PageHeader, StatCard, EmptyState } from "@/components/ui";
 import FilterBar, { Filters } from "@/components/FilterBar";
 import { useCatalogs, useFetch } from "@/lib/hooks";
 import { toQueryString } from "@/lib/queryString";
-import { formatCurrency, formatPercent } from "@/lib/labels";
+import { formatCurrency, formatPercent, stageColors } from "@/lib/labels";
 import { exportToCSV, exportToExcel } from "@/lib/export";
+import { Stage } from "@prisma/client";
+
+const FUNNEL_ICONS: Partial<Record<Stage, any>> = {
+  INFORMES: FileText,
+  VISITA: Home,
+  NEGOCIACION: Handshake,
+  GANADO: Trophy,
+};
 
 const PIE_COLORS = ["#253574", "#F6B436", "#5B8DEF", "#9B6FD9", "#3FBE7A", "#E15B5B", "#F0B429"];
 
@@ -28,8 +36,8 @@ type DashboardData = {
   };
   evolution: { label: string; nuevos: number; ganados: number }[];
   funnel: {
-    stage: string; label: string; reached: number; won: number; lost: number;
-    active: number; closeRate: number | null; neededPerSale: number | null;
+    stage: Stage; label: string; total: number;
+    percentVsPrevious: number | null; percentAccumulated: number | null;
   }[];
 };
 
@@ -118,6 +126,8 @@ export default function DashboardPage() {
               )}
             </div>
 
+            <ConversionFunnel funnel={data.funnel} />
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="card p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Evolución de prospectos y ventas</h3>
@@ -192,44 +202,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="card p-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">Embudo de conversión (etapa máxima alcanzada)</h3>
-              <p className="text-xs text-gray-500 mb-3">
-                Cuenta cada prospecto por la etapa más avanzada a la que llegó, sin importar si después se perdió. "Perdido" no es una etapa: solo marca el desenlace.
-              </p>
-              {data.funnel.every((f) => f.reached === 0) ? (
-                <EmptyState title="Sin datos en este periodo" />
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                      <tr>
-                        <th className="text-left px-3 py-2">Etapa máxima</th>
-                        <th className="text-left px-3 py-2">Llegaron</th>
-                        <th className="text-left px-3 py-2">Ganados</th>
-                        <th className="text-left px-3 py-2">Perdidos</th>
-                        <th className="text-left px-3 py-2">Activos</th>
-                        <th className="text-left px-3 py-2">Tasa de cierre</th>
-                        <th className="text-left px-3 py-2">Prospectos por venta</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {data.funnel.map((f) => (
-                        <tr key={f.stage}>
-                          <td className="px-3 py-1.5 font-medium">{f.label}</td>
-                          <td className="px-3 py-1.5">{f.reached}</td>
-                          <td className="px-3 py-1.5 text-alert-green">{f.won}</td>
-                          <td className="px-3 py-1.5 text-alert-red">{f.lost}</td>
-                          <td className="px-3 py-1.5 text-gray-500">{f.active}</td>
-                          <td className="px-3 py-1.5">{formatPercent(f.closeRate)}</td>
-                          <td className="px-3 py-1.5">{f.neededPerSale !== null ? f.neededPerSale.toFixed(1) : "—"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
           </>
         )}
 
@@ -296,6 +268,70 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function stripEmoji(label: string) {
+  return label.replace(/^\S+\s*/, "");
+}
+
+function ConversionFunnel({ funnel }: { funnel: DashboardData["funnel"] }) {
+  const hasData = funnel.some((f) => f.total > 0);
+  return (
+    <div className="card p-5 break-inside-avoid">
+      <h3 className="text-base font-bold text-gray-900">Embudo de conversión</h3>
+      <p className="text-xs text-gray-500 mb-4">Conversión por etapa y acumulada</p>
+      {!hasData ? (
+        <EmptyState title="Sin datos en este periodo" />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(220px,380px)_1fr] gap-6 items-center">
+          <div className="flex flex-col items-center">
+            {funnel.map((f, i) => {
+              const Icon = FUNNEL_ICONS[f.stage];
+              const widthPct = Math.max(34, Math.round((f.percentAccumulated ?? 0) * 100));
+              return (
+                <div
+                  key={f.stage}
+                  className="flex items-center justify-center gap-2 text-white font-semibold text-sm py-4 transition-all"
+                  style={{
+                    width: `${widthPct}%`,
+                    background: stageColors[f.stage],
+                    clipPath: "polygon(6% 0, 94% 0, 88% 100%, 12% 100%)",
+                    marginTop: i === 0 ? 0 : -4,
+                  }}
+                >
+                  {Icon && <Icon size={16} />}
+                  {stripEmoji(f.label)}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                <tr>
+                  <th className="text-left px-3 py-2">Etapa</th>
+                  <th className="text-left px-3 py-2">Total</th>
+                  <th className="text-left px-3 py-2">% vs etapa anterior</th>
+                  <th className="text-left px-3 py-2">% acumulado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {funnel.map((f) => (
+                  <tr key={f.stage}>
+                    <td className="px-3 py-2 font-medium" style={{ color: stageColors[f.stage] }}>{stripEmoji(f.label)}</td>
+                    <td className="px-3 py-2 font-semibold">{f.total}</td>
+                    <td className="px-3 py-2">{formatPercent(f.percentVsPrevious)}</td>
+                    <td className="px-3 py-2">{formatPercent(f.percentAccumulated)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

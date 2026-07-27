@@ -98,22 +98,18 @@ export async function GET(req: NextRequest) {
     }
     const evolution = Object.values(buckets).sort((a, b) => a.label.localeCompare(b.label));
 
-    const funnel = funnelStages.map((stage) => {
-      const reached = prospects.filter((p) => stageRank[p.maxStage] >= stageRank[stage]);
-      const won = reached.filter((p) => p.stage === "GANADO").length;
-      const lost = reached.filter((p) => p.stage === "PERDIDO").length;
-      const active = reached.length - won - lost;
-      const closeRate = won + lost > 0 ? won / (won + lost) : null;
-      const neededPerSale = won > 0 ? reached.length / won : null;
+    const funnelCounts = funnelStages.map((stage) => ({
+      stage,
+      label: stageLabels[stage],
+      total: prospects.filter((p) => stageRank[p.maxStage] >= stageRank[stage]).length,
+    }));
+    const firstStageTotal = funnelCounts[0]?.total || 0;
+    const funnel = funnelCounts.map((f, i) => {
+      const prevTotal = i === 0 ? f.total : funnelCounts[i - 1].total;
       return {
-        stage,
-        label: stageLabels[stage],
-        reached: reached.length,
-        won,
-        lost,
-        active,
-        closeRate,
-        neededPerSale,
+        ...f,
+        percentVsPrevious: prevTotal > 0 ? f.total / prevTotal : null,
+        percentAccumulated: firstStageTotal > 0 ? f.total / firstStageTotal : null,
       };
     });
 

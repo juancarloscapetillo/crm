@@ -24,7 +24,7 @@ export const stageRank: Record<Stage, number> = {
   PERDIDO: -1,
 };
 
-export const funnelStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION"];
+export const funnelStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO"];
 
 export const stageColors: Record<Stage, string> = {
   SIN_CONTACTAR: "#9CA3AF",
