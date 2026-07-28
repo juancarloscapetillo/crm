@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts";
-import { Download, FileSpreadsheet, Printer, FileText, Home, Handshake, Trophy } from "lucide-react";
+import { Download, FileSpreadsheet, Printer, FileText, Home, Handshake, Lock, Trophy } from "lucide-react";
 import { PageHeader, StatCard, EmptyState } from "@/components/ui";
 import FilterBar, { Filters } from "@/components/FilterBar";
 import { useCatalogs, useFetch } from "@/lib/hooks";
@@ -18,12 +18,13 @@ const FUNNEL_ICONS: Partial<Record<Stage, any>> = {
   INFORMES: FileText,
   VISITA: Home,
   NEGOCIACION: Handshake,
+  APARTADO: Lock,
   GANADO: Trophy,
 };
 
 // Fixed decorative widths per funnel position — the shape never changes
 // with the data, only the numbers in the table do.
-const FUNNEL_BAND_WIDTHS = [100, 78, 56, 34];
+const FUNNEL_BAND_WIDTHS = [100, 84, 68, 52, 36];
 
 const PIE_COLORS = ["#253574", "#F6B436", "#5B8DEF", "#9B6FD9", "#3FBE7A", "#E15B5B", "#F0B429"];
 

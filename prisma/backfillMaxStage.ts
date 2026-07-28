@@ -7,6 +7,7 @@ const stageLabels: Record<Stage, string> = {
   INFORMES: "📥 Informes",
   VISITA: "📅 Visita",
   NEGOCIACION: "🤝 Negociación",
+  APARTADO: "🔒 Apartado",
   GANADO: "✅ Ganado",
   PERDIDO: "❌ Perdido",
 };
@@ -16,7 +17,8 @@ const stageRank: Record<Stage, number> = {
   INFORMES: 1,
   VISITA: 2,
   NEGOCIACION: 3,
-  GANADO: 4,
+  APARTADO: 4,
+  GANADO: 5,
   PERDIDO: -1,
 };
 

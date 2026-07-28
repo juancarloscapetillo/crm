@@ -121,7 +121,7 @@ async function seedDemoData({ admin, vendedores, tags, project }: any) {
     return;
   }
 
-  const stages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+  const stages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
   const lostMaxStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION"];
   const sources: SourceType[] = ["DIRECTO", "ASESOR_EXTERNO", "COMUNIDAD", "REFERIDO", "CAMPANA"];
   const names = [

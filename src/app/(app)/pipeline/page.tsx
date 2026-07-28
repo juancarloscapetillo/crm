@@ -18,7 +18,7 @@ import { toQueryString } from "@/lib/queryString";
 import { Stage } from "@prisma/client";
 import { hoursSince } from "@/lib/alert";
 
-const kanbanStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+const kanbanStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
 const FAVORITES_ID = "FAVORITOS";
 
 const sourceOptions = [

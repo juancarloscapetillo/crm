@@ -5,12 +5,13 @@ export const stageLabels: Record<Stage, string> = {
   INFORMES: "📥 Informes",
   VISITA: "📅 Visita",
   NEGOCIACION: "🤝 Negociación",
+  APARTADO: "🔒 Apartado",
   GANADO: "✅ Ganado",
   PERDIDO: "❌ Perdido",
 };
 
-export const stageOrder: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
-export const pipelineStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
+export const stageOrder: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
+export const pipelineStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
 
 // Ranks the real progress a prospect made through the funnel. PERDIDO isn't a
 // stage of progress (it's an outcome), so it has no rank and never counts as
@@ -20,17 +21,19 @@ export const stageRank: Record<Stage, number> = {
   INFORMES: 1,
   VISITA: 2,
   NEGOCIACION: 3,
-  GANADO: 4,
+  APARTADO: 4,
+  GANADO: 5,
   PERDIDO: -1,
 };
 
-export const funnelStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "GANADO"];
+export const funnelStages: Stage[] = ["INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO"];
 
 export const stageColors: Record<Stage, string> = {
   SIN_CONTACTAR: "#9CA3AF",
   INFORMES: "#5B8DEF",
   VISITA: "#F6B436",
   NEGOCIACION: "#9B6FD9",
+  APARTADO: "#22B8B0",
   GANADO: "#3FBE7A",
   PERDIDO: "#E15B5B",
 };

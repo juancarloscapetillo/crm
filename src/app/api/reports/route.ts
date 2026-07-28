@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError } from "@/lib/api";
 import { getRange, RangeKey } from "@/lib/dateRanges";
 import { getAlertStatus, hoursSince } from "@/lib/alert";
-import { stageLabels } from "@/lib/labels";
+import { stageLabels, stageOrder } from "@/lib/labels";
 import { Prisma } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -43,7 +43,6 @@ export async function GET(req: NextRequest) {
     const totalInvestment = marketing.reduce((s, m) => s + m.amount, 0);
 
     // Conversión por etapa (embudo)
-    const stageOrder: (keyof typeof stageLabels)[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "GANADO", "PERDIDO"];
     const byStage = stageOrder.map((s) => ({
       stage: stageLabels[s],
       count: prospects.filter((p) => p.stage === s).length,
