@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         prospect: user.role !== "ADMIN" ? { assignedUserId: user.id, isDemo: false } : { isDemo: false },
       },
       include: {
-        prospect: { select: { id: true, name: true, stage: true, lastActivityAt: true } },
+        prospect: { select: { id: true, name: true, stage: true, lastActivityAt: true, nextActionDate: true } },
         assignedUser: true,
         createdBy: true,
       },
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     const withAlert = tasks.map((t) => ({
       ...t,
-      prospectAlertStatus: getAlertStatus(t.prospect.lastActivityAt, t.prospect.stage),
+      prospectAlertStatus: getAlertStatus(t.prospect.lastActivityAt, t.prospect.stage, t.prospect.nextActionDate),
     }));
 
     return NextResponse.json({ tasks: withAlert });

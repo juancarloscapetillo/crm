@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     const alertFilter = req.nextUrl.searchParams.get("alert");
     const withAlert = prospects.map((p) => ({
       ...p,
-      alertStatus: getAlertStatus(p.lastActivityAt, p.stage),
+      alertStatus: getAlertStatus(p.lastActivityAt, p.stage, p.nextActionDate),
       isFavorite: p.favoritedBy.length > 0,
     }));
 

@@ -6,10 +6,17 @@ const HOUR_MS = 60 * 60 * 1000;
 
 /**
  * Semáforo de seguimiento: verde (<72h), amarillo (>=72h), rojo (>=96h).
- * No aplica en etapas Ganado/Perdido.
+ * No aplica en etapas Ganado/Perdido. Tampoco aplica si el prospecto ya
+ * tiene una próxima acción agendada a futuro: ya hay un plan, así que no
+ * cuenta como abandonado aunque haya pasado tiempo desde la última actividad.
  */
-export function getAlertStatus(lastActivityAt: Date | string, stage: Stage): AlertStatus {
+export function getAlertStatus(
+  lastActivityAt: Date | string,
+  stage: Stage,
+  nextActionDate?: Date | string | null
+): AlertStatus {
   if (stage === "GANADO" || stage === "PERDIDO") return "closed";
+  if (nextActionDate && new Date(nextActionDate).getTime() >= Date.now()) return "green";
   const last = new Date(lastActivityAt).getTime();
   const hours = (Date.now() - last) / HOUR_MS;
   if (hours >= 96) return "red";

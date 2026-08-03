@@ -28,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({
       prospect: {
         ...prospect,
-        alertStatus: getAlertStatus(prospect.lastActivityAt, prospect.stage),
+        alertStatus: getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate),
         isFavorite: prospect.favoritedBy.length > 0,
       },
     });
