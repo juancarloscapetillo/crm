@@ -51,7 +51,7 @@ export default function ProspectCard({
   }
 
   const liveAlertStatus = prospect.lastActivityAt
-    ? getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate)
+    ? getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate, prospect.nextAction)
     : prospect.alertStatus;
   const borderColor = { green: "#3FBE7A", yellow: "#F0B429", red: "#E15B5B", closed: "#E5E7EB" }[liveAlertStatus];
 

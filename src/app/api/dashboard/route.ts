@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const ventasGanadas = ganados.reduce((s, p) => s + (p.estimatedValue || 0), 0);
 
     const sinSeguimiento = activos.filter((p) => {
-      const status = getAlertStatus(p.lastActivityAt, p.stage, p.nextActionDate);
+      const status = getAlertStatus(p.lastActivityAt, p.stage, p.nextActionDate, p.nextAction);
       return status === "yellow" || status === "red";
     });
 

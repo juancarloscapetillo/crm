@@ -191,7 +191,7 @@ export default function ProspectProfilePage() {
       <div className="p-4 sm:p-6 space-y-6">
         <div className="flex flex-wrap items-center gap-3">
           <StageBadge stage={prospect.stage} />
-          <AlertDot status={getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate)} showLabel />
+          <AlertDot status={getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate, prospect.nextAction)} showLabel />
           {prospect.tags.map((t: any) => (
             <TagPill key={t.tag.id} name={t.tag.name} color={t.tag.color} />
           ))}
