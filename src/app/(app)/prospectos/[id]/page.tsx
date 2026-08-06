@@ -35,7 +35,6 @@ export default function ProspectProfilePage() {
   const [activityContent, setActivityContent] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDue, setTaskDue] = useState("");
-  const [noteContent, setNoteContent] = useState("");
   const [uploading, setUploading] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
 
@@ -119,23 +118,6 @@ export default function ProspectProfilePage() {
     }
     setActivityContent("");
     toast.success("Actividad registrada");
-    reload();
-  }
-
-  async function submitNote(e: React.FormEvent) {
-    e.preventDefault();
-    if (!noteContent.trim()) return;
-    const res = await fetch(`/api/prospects/${id}/activities`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "COMENTARIO", content: noteContent }),
-    });
-    if (!res.ok) {
-      toast.error("No se pudo agregar la nota");
-      return;
-    }
-    setNoteContent("");
-    toast.success("Nota agregada");
     reload();
   }
 
@@ -335,37 +317,6 @@ export default function ProspectProfilePage() {
                     </span>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="card p-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Notas</h3>
-              <form onSubmit={submitNote} className="flex flex-col gap-2 mb-3">
-                <textarea
-                  className="input"
-                  rows={2}
-                  placeholder="Escribe una nota..."
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                />
-                <button type="submit" className="btn-primary text-xs self-end">
-                  <Plus size={14} /> Agregar nota
-                </button>
-              </form>
-              <div className="space-y-1.5 max-h-72 overflow-y-auto">
-                {prospect.activities.filter((a: any) => a.type === "COMENTARIO").length === 0 && (
-                  <p className="text-xs text-gray-400">Sin notas registradas.</p>
-                )}
-                {prospect.activities
-                  .filter((a: any) => a.type === "COMENTARIO")
-                  .map((a: any) => (
-                    <div key={a.id} className="text-sm px-2 py-1.5 rounded hover:bg-gray-50">
-                      <span className="text-gray-800 whitespace-pre-wrap">{a.content}</span>
-                      <span className="block text-[11px] text-gray-400 mt-0.5">
-                        {a.user?.name || "Sistema"} · {formatDateTime(a.createdAt)}
-                      </span>
-                    </div>
-                  ))}
               </div>
             </div>
           </div>
