@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError, jsonError } from "@/lib/api";
+import { requireUser, handleApiError, jsonError, canManageAllProspects } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
 
 function buildWhere(searchParams: URLSearchParams, userId: string, role: string): Prisma.ProspectWhereInput {
   const where: Prisma.ProspectWhereInput = {};
   const and: Prisma.ProspectWhereInput[] = [];
 
-  if (role !== "ADMIN") and.push({ assignedUserId: userId });
+  if (!canManageAllProspects(role)) and.push({ assignedUserId: userId });
 
   const vendedor = searchParams.get("vendedor");
   if (vendedor) and.push({ assignedUserId: vendedor });
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         sourceType: body.sourceType || "DIRECTO",
         companyId: body.companyId || null,
         advisorId: body.advisorId || null,
-        assignedUserId: body.assignedUserId || (user.role !== "ADMIN" ? user.id : null),
+        assignedUserId: body.assignedUserId || (!canManageAllProspects(user.role) ? user.id : null),
         projectId: body.projectId || null,
         unitInterest: body.unitInterest || null,
         budget: body.budget ? Number(body.budget) : null,

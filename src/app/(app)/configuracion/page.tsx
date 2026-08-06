@@ -9,6 +9,7 @@ import UsersSection from "./UsersSection";
 import IntegrationsSection from "./IntegrationsSection";
 import MetaAdsSection from "./MetaAdsSection";
 import ImportSection from "./ImportSection";
+import PermisosSection from "./PermisosSection";
 
 const tabs = [
   { key: "tags", label: "Tags" },
@@ -16,6 +17,7 @@ const tabs = [
   { key: "integraciones", label: "Integraciones" },
   { key: "meta-ads", label: "Meta Ads" },
   { key: "usuarios", label: "Usuarios" },
+  { key: "permisos", label: "Permisos" },
   { key: "importar", label: "Importar" },
 ];
 
@@ -30,7 +32,7 @@ export default function ConfiguracionPage() {
       <div className="p-4 sm:p-6 space-y-4">
         <div className="flex gap-2 border-b border-gray-200">
           {tabs.map((t) => {
-            if ((t.key === "usuarios" || t.key === "meta-ads" || t.key === "importar") && !isAdmin) return null;
+            if ((t.key === "usuarios" || t.key === "meta-ads" || t.key === "importar" || t.key === "permisos") && !isAdmin) return null;
             return (
               <button
                 key={t.key}
@@ -50,6 +52,7 @@ export default function ConfiguracionPage() {
         {tab === "integraciones" && <IntegrationsSection />}
         {tab === "meta-ads" && isAdmin && <MetaAdsSection />}
         {tab === "usuarios" && isAdmin && <UsersSection />}
+        {tab === "permisos" && isAdmin && <PermisosSection />}
         {tab === "importar" && isAdmin && <ImportSection />}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError } from "@/lib/api";
+import { requireUser, handleApiError, canManageAllProspects } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const tasks = await prisma.task.findMany({
       where: {
         completed: completedParam === "true" ? true : completedParam === "false" ? false : undefined,
-        prospect: user.role !== "ADMIN" ? { assignedUserId: user.id, isDemo: false } : { isDemo: false },
+        prospect: !canManageAllProspects(user.role) ? { assignedUserId: user.id, isDemo: false } : { isDemo: false },
       },
       include: {
         prospect: { select: { id: true, name: true, stage: true, lastActivityAt: true, nextActionDate: true, nextAction: true } },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError } from "@/lib/api";
+import { requireUser, handleApiError, canManageAllProspects } from "@/lib/api";
 import { stageLabels } from "@/lib/labels";
 
 export async function GET(req: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const prospects = await prisma.prospect.findMany({
       where: {
         AND: [
-          user.role !== "ADMIN" ? { assignedUserId: user.id } : {},
+          !canManageAllProspects(user.role) ? { assignedUserId: user.id } : {},
           {
             OR: [
               { name: { contains: q, mode: "insensitive" } },

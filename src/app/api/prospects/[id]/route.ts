@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError, jsonError } from "@/lib/api";
+import { requireUser, handleApiError, jsonError, canManageAllProspects } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
 import { stageLabels, stageRank } from "@/lib/labels";
 import { Stage } from "@prisma/client";
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       },
     });
     if (!prospect) return jsonError("Prospecto no encontrado", 404);
-    if (user.role !== "ADMIN" && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
+    if (!canManageAllProspects(user.role) && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
     return NextResponse.json({
       prospect: {
@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const existing = await prisma.prospect.findUnique({ where: { id: params.id }, include: { assignedUser: true } });
     if (!existing) return jsonError("Prospecto no encontrado", 404);
-    if (user.role !== "ADMIN" && existing.assignedUserId !== user.id) return jsonError("No autorizado", 403);
+    if (!canManageAllProspects(user.role) && existing.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
     const data: any = {};
     const activitiesToCreate: any[] = [];

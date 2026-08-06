@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, handleApiError } from "@/lib/api";
+import { requireUser, handleApiError, canManageAllProspects } from "@/lib/api";
 import { getAlertStatus } from "@/lib/alert";
 import { getRange, RangeKey } from "@/lib/dateRanges";
 import { stageLabels, stageRank, funnelStages } from "@/lib/labels";
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const source = sp.get("source");
     const project = sp.get("project");
     const and: Prisma.ProspectWhereInput[] = [];
-    if (user.role !== "ADMIN") and.push({ assignedUserId: user.id });
+    if (!canManageAllProspects(user.role)) and.push({ assignedUserId: user.id });
     and.push({ isDemo: false });
     if (start) and.push({ entryDate: { gte: start, lte: end } });
     else and.push({ entryDate: { lte: end } });

@@ -23,6 +23,11 @@ export async function requireAdminUser() {
   return user;
 }
 
+/** Admin and Coordinador see/edit every prospect, not just their own — everyone else is scoped to assignedUserId. */
+export function canManageAllProspects(role: string) {
+  return role === "ADMIN" || role === "COORDINADOR";
+}
+
 export class ApiAuthError extends Error {
   status: number;
   constructor(message: string, status: number) {
