@@ -15,9 +15,19 @@ export const metadata: Metadata = {
   icons: { icon: "/brand/calume-icon.png" },
 };
 
+const THEME_INIT_SCRIPT = `
+  try {
+    var theme = localStorage.getItem("calume-theme");
+    if (theme === "dark") document.documentElement.classList.add("dark");
+  } catch (e) {}
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-MX" className={sora.variable}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

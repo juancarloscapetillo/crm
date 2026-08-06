@@ -14,7 +14,10 @@ import {
   X,
   ChevronsLeft,
   ChevronsRight,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +39,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (forceExpanded) return;
@@ -91,6 +95,18 @@ export default function Sidebar({
           );
         })}
       </nav>
+      <div className={`border-t border-white/10 py-2 ${isCollapsed ? "px-2" : "px-2"}`}>
+        <button
+          onClick={toggleTheme}
+          title={isCollapsed ? (theme === "dark" ? "Modo claro" : "Modo oscuro") : undefined}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          {!isCollapsed && (theme === "dark" ? "Modo claro" : "Modo oscuro")}
+        </button>
+      </div>
       {!forceExpanded && (
         <button
           onClick={toggleCollapsed}

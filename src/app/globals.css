@@ -15,6 +15,12 @@ body {
 body {
   @apply bg-gray-50 text-gray-900;
 }
+html.dark {
+  color-scheme: dark;
+}
+html.dark body {
+  @apply bg-[#0d1017] text-gray-100;
+}
 
 @layer components {
   .btn {
@@ -29,22 +35,76 @@ body {
   .btn-secondary {
     @apply btn bg-white text-calume-navy border border-gray-200 hover:bg-gray-50;
   }
+  html.dark .btn-secondary {
+    @apply bg-[#171b2b] text-white border-[#2c3350] hover:bg-[#1d2237];
+  }
   .btn-danger {
     @apply btn bg-red-50 text-red-600 border border-red-200 hover:bg-red-100;
+  }
+  html.dark .btn-danger {
+    @apply bg-red-950 text-red-400 border-red-900 hover:bg-red-900;
   }
   .card {
     @apply bg-white rounded-xl2 shadow-card border border-gray-100;
   }
+  html.dark .card {
+    @apply bg-[#171b2b] border-[#262c40];
+  }
   .input {
     @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-calume-navy/30 focus:border-calume-navy;
   }
+  html.dark .input {
+    @apply bg-[#10131f] border-[#2c3350] text-gray-100 placeholder-gray-500;
+  }
   .label {
     @apply block text-xs font-medium text-gray-600 mb-1;
+  }
+  html.dark .label {
+    color: #6b7286;
   }
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 }
+
+/* Dark mode: overrides for raw Tailwind utility classes used directly in
+   components (tables, cards, lists) so they don't need per-file dark:
+   variants. Selector specificity (html.dark + class) beats the plain
+   utility class, so no !important is needed. */
+html.dark {
+  --tw-shadow-color: transparent;
+}
+html.dark .bg-white { background-color: #171b2b; }
+html.dark .bg-gray-50 { background-color: #10131f; }
+html.dark .bg-gray-100 { background-color: #1b2033; }
+html.dark .border-gray-50 { border-color: #1b2033; }
+html.dark .border-gray-100 { border-color: #262c40; }
+html.dark .border-gray-200 { border-color: #2c3350; }
+html.dark .border-gray-300 { border-color: #3a4262; }
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #262c40; }
+html.dark .text-gray-900 { color: #eef0f6; }
+html.dark .text-gray-800 { color: #d7d9e3; }
+html.dark .text-gray-700 { color: #c7c9d6; }
+html.dark .text-gray-600 { color: #b3b6c4; }
+html.dark .text-gray-500 { color: #9aa1b8; }
+html.dark .text-gray-400 { color: #6b7286; }
+html.dark .text-gray-300 { color: #4b5170; }
+html.dark .hover\:bg-gray-50:hover { background-color: #1b2033; }
+html.dark .hover\:bg-white:hover { background-color: #1d2237; }
+html.dark .hover\:text-gray-600:hover { color: #c7c9d6; }
+html.dark .hover\:text-gray-700:hover { color: #d7d9e3; }
+html.dark .bg-green-50 { background-color: #0f2e22; }
+html.dark .text-green-700 { color: #4fd694; }
+html.dark .text-green-800 { color: #6ee7a8; }
+html.dark .border-green-200 { border-color: #1f4a37; }
+html.dark .bg-red-50 { background-color: #341318; }
+html.dark .text-red-500 { color: #f87171; }
+html.dark .text-red-600 { color: #f87171; }
+html.dark .text-red-700 { color: #fca5a5; }
+html.dark .text-red-800 { color: #fecaca; }
+html.dark .border-red-100 { border-color: #4a1d22; }
+html.dark .border-red-200 { border-color: #5a232a; }
+html.dark .hover\:text-red-500:hover { color: #f87171; }
 
 .print-only {
   display: none;
