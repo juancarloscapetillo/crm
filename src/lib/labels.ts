@@ -78,6 +78,7 @@ export const roleLabels: Record<Role, string> = {
   ADMIN: "Administrador",
   VENDEDOR: "Vendedor",
   LEAD_MANAGER: "Lead Manager",
+  COORDINADOR: "Coordinador",
 };
 
 export function formatCurrency(value: number | null | undefined): string {

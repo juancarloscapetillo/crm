@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   VENDEDOR
   LEAD_MANAGER
+  COORDINADOR
 }
 
 enum Stage {

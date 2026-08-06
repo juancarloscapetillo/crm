@@ -169,6 +169,7 @@ export default function UsersSection() {
             <label className="label">Rol</label>
             <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
               <option value="VENDEDOR">Vendedor</option>
+              <option value="COORDINADOR">Coordinador</option>
               <option value="LEAD_MANAGER">Lead Manager</option>
               <option value="ADMIN">Administrador</option>
             </select>
@@ -209,6 +210,7 @@ export default function UsersSection() {
             <label className="label">Rol</label>
             <select className="input" value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
               <option value="VENDEDOR">Vendedor</option>
+              <option value="COORDINADOR">Coordinador</option>
               <option value="LEAD_MANAGER">Lead Manager</option>
               <option value="ADMIN">Administrador</option>
             </select>
