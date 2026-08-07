@@ -22,10 +22,46 @@ const alertOptions = [
   { value: "red", label: "🔴 Rojo" },
 ];
 
+const viewOptions = [
+  { value: "", label: "Todas" },
+  { value: "hoy", label: "Hoy" },
+  { value: "semana", label: "Esta semana" },
+  { value: "mes", label: "Este mes" },
+  { value: "vencidas", label: "Vencidas" },
+];
+
+function startOfWeek(d: Date) {
+  const s = new Date(d);
+  const day = s.getDay();
+  s.setDate(s.getDate() - day + (day === 0 ? -6 : 1));
+  s.setHours(0, 0, 0, 0);
+  return s;
+}
+function endOfWeek(d: Date) {
+  const e = startOfWeek(d);
+  e.setDate(e.getDate() + 6);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
+function startOfMonth(d: Date) {
+  const s = new Date(d.getFullYear(), d.getMonth(), 1);
+  s.setHours(0, 0, 0, 0);
+  return s;
+}
+function endOfMonth(d: Date) {
+  const e = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 export default function TareasPage() {
   const [completed, setCompleted] = useState("false");
   const [alert, setAlert] = useState("");
   const [creator, setCreator] = useState("");
+  const [view, setView] = useState("");
   const qs = toQueryString({ completed });
   const { data, loading, reload } = useFetch<{ tasks: any[] }>(`/api/tasks${qs}`, [qs]);
 
@@ -34,11 +70,22 @@ export default function TareasPage() {
     new Map(allTasks.filter((t) => t.createdBy).map((t) => [t.createdBy.id, t.createdBy.name])).entries()
   ).map(([id, name]) => ({ value: id, label: name }));
 
+  const now = new Date();
+
   let tasks = allTasks;
   if (alert) tasks = tasks.filter((t) => t.prospectAlertStatus === alert);
   if (creator) tasks = tasks.filter((t) => t.createdBy?.id === creator);
-
-  const now = new Date();
+  if (view === "hoy") {
+    tasks = tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), now));
+  } else if (view === "semana") {
+    const s = startOfWeek(now), e = endOfWeek(now);
+    tasks = tasks.filter((t) => t.dueDate && new Date(t.dueDate) >= s && new Date(t.dueDate) <= e);
+  } else if (view === "mes") {
+    const s = startOfMonth(now), e = endOfMonth(now);
+    tasks = tasks.filter((t) => t.dueDate && new Date(t.dueDate) >= s && new Date(t.dueDate) <= e);
+  } else if (view === "vencidas") {
+    tasks = tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && !t.completed);
+  }
 
   async function toggle(prospectId: string, taskId: string, next: boolean) {
     const res = await fetch(`/api/prospects/${prospectId}/tasks/${taskId}`, {
@@ -56,6 +103,21 @@ export default function TareasPage() {
     <div>
       <PageHeader title="Tareas y seguimientos" subtitle="Actividades pendientes con cada prospecto, priorizadas por semáforo de seguimiento" />
       <div className="p-4 sm:p-6 space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {viewOptions.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => setView(o.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                view === o.value
+                  ? "bg-calume-navy text-white border-calume-navy"
+                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap items-end gap-3 bg-white border border-gray-200 rounded-xl2 p-3">
           <div>
             <label className="label">Estado</label>
