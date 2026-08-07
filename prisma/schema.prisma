@@ -195,6 +195,7 @@ model Activity {
   content    String?
   fromValue  String?
   toValue    String?
+  pinned     Boolean      @default(false)
   createdAt  DateTime     @default(now())
 }
 

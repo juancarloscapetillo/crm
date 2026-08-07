@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake } from "lucide-react";
+import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake, Pin, PinOff } from "lucide-react";
 import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import Fireworks from "@/components/Fireworks";
@@ -136,6 +136,20 @@ export default function ProspectProfilePage() {
     }
     setNoteContent("");
     toast.success("Nota agregada");
+    reload();
+  }
+
+  async function toggleNotePin(activityId: string, pinned: boolean) {
+    const res = await fetch(`/api/prospects/${id}/activities/${activityId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned }),
+    });
+    if (!res.ok) {
+      toast.error("No se pudo actualizar la nota");
+      return;
+    }
+    toast.success(pinned ? "Nota fijada" : "Nota desfijada");
     reload();
   }
 
@@ -352,21 +366,55 @@ export default function ProspectProfilePage() {
                   <Plus size={14} /> Agregar nota
                 </button>
               </form>
-              <div className="space-y-1.5 max-h-72 overflow-y-auto">
-                {prospect.activities.filter((a: any) => a.type === "COMENTARIO").length === 0 && (
-                  <p className="text-xs text-gray-400">Sin notas registradas.</p>
-                )}
-                {prospect.activities
-                  .filter((a: any) => a.type === "COMENTARIO")
-                  .map((a: any) => (
-                    <div key={a.id} className="text-sm px-2 py-1.5 rounded hover:bg-gray-50">
-                      <span className="text-gray-800 whitespace-pre-wrap">{a.content}</span>
-                      <span className="block text-[11px] text-gray-400 mt-0.5">
-                        {a.user?.name || "Sistema"} · {formatDateTime(a.createdAt)}
-                      </span>
+              {(() => {
+                const notes = prospect.activities.filter((a: any) => a.type === "COMENTARIO");
+                const pinnedNote = notes.find((a: any) => a.pinned);
+                const otherNotes = notes.filter((a: any) => !a.pinned);
+                return (
+                  <>
+                    {pinnedNote && (
+                      <div className="mb-2 rounded-lg border border-calume-gold/40 bg-calume-gold/10 px-3 py-2">
+                        <div className="flex items-start gap-2">
+                          <Pin size={14} className="text-calume-gold shrink-0 mt-0.5 fill-calume-gold" />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-base font-medium text-gray-900 whitespace-pre-wrap">{pinnedNote.content}</span>
+                            <span className="block text-[11px] text-gray-500 mt-0.5">
+                              {pinnedNote.user?.name || "Sistema"} · {formatDateTime(pinnedNote.createdAt)}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => toggleNotePin(pinnedNote.id, false)}
+                            title="Desfijar nota"
+                            className="text-gray-400 hover:text-gray-600 shrink-0"
+                          >
+                            <PinOff size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                      {notes.length === 0 && <p className="text-xs text-gray-400">Sin notas registradas.</p>}
+                      {otherNotes.map((a: any) => (
+                        <div key={a.id} className="group flex items-start gap-2 text-sm px-2 py-1.5 rounded hover:bg-gray-50">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-gray-800 whitespace-pre-wrap">{a.content}</span>
+                            <span className="block text-[11px] text-gray-400 mt-0.5">
+                              {a.user?.name || "Sistema"} · {formatDateTime(a.createdAt)}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => toggleNotePin(a.id, true)}
+                            title="Fijar nota"
+                            className="text-gray-300 hover:text-calume-gold shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Pin size={14} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-              </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
