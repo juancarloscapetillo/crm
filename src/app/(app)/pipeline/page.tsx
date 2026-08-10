@@ -219,7 +219,7 @@ export default function PipelinePage() {
         actions={
           <div className="flex items-center gap-2">
             <button className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={15} /> Excel
+              <FileSpreadsheet size={15} /> Exportar Excel
             </button>
             <button className="btn-gold" onClick={() => setShowCreate(true)}>
               <Plus size={16} /> Nuevo prospecto
