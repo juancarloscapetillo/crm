@@ -7,16 +7,17 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import toast from "react-hot-toast";
-import { Plus, Star, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Star, X, ChevronLeft, ChevronRight, FileSpreadsheet } from "lucide-react";
 import { PageHeader, Modal } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
 import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick, useCatalogs } from "@/lib/hooks";
-import { pipelineStages, stageLabels, stageColors, formatCurrency } from "@/lib/labels";
+import { pipelineStages, stageLabels, stageColors, sourceLabels, formatCurrency, formatDate } from "@/lib/labels";
 import { toQueryString } from "@/lib/queryString";
 import { Stage } from "@prisma/client";
-import { hoursSince } from "@/lib/alert";
+import { hoursSince, alertLabel } from "@/lib/alert";
+import { exportToExcel } from "@/lib/export";
 
 const kanbanStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
 const FAVORITES_ID = "FAVORITOS";
@@ -187,6 +188,28 @@ export default function PipelinePage() {
 
   const activeProspect = prospects.find((p) => p.id === activeId);
 
+  function handleExportExcel() {
+    const rows = prospects.map((p: any) => ({
+      Nombre: p.name,
+      Etapa: stageLabels[p.stage as Stage],
+      Proyecto: p.project?.name || "",
+      "Vendedor asignado": p.assignedUser?.name || "Sin asignar",
+      "Asesor externo": p.advisor?.name || "",
+      Inmobiliaria: p.company?.commercialName || p.advisor?.company?.commercialName || "",
+      Fuente: sourceLabels[p.sourceType as keyof typeof sourceLabels] || p.sourceType,
+      Teléfono: p.phone || "",
+      Correo: p.email || "",
+      Presupuesto: p.budget ?? "",
+      "Valor estimado": p.estimatedValue ?? "",
+      "Próxima acción": p.nextAction || "",
+      "Fecha próximo seguimiento": p.nextActionDate ? formatDate(p.nextActionDate) : "",
+      "Fecha de ingreso": formatDate(p.entryDate),
+      Semáforo: p.alertStatus ? alertLabel(p.alertStatus) : "",
+      Tags: (p.tags || []).map((t: any) => t.tag.name).join(", "),
+    }));
+    exportToExcel("calume-pipeline", [{ name: "Pipeline", rows }]);
+  }
+
   return (
     <div className="flex flex-col h-full">
       <Fireworks active={celebrate} onDone={() => setCelebrate(false)} />
@@ -194,9 +217,14 @@ export default function PipelinePage() {
         title="Pipeline de ventas"
         subtitle="Arrastra las tarjetas para mover a los prospectos entre etapas"
         actions={
-          <button className="btn-gold" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Nuevo prospecto
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={15} /> Excel
+            </button>
+            <button className="btn-gold" onClick={() => setShowCreate(true)}>
+              <Plus size={16} /> Nuevo prospecto
+            </button>
+          </div>
         }
       />
       <div className="px-4 sm:px-6 pt-4">
