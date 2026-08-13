@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError, canManageAllProspects } from "@/lib/api";
-import { getAlertStatus } from "@/lib/alert";
+import { getAlertStatus, hasOpenFollowUp } from "@/lib/alert";
 import { getRange, RangeKey } from "@/lib/dateRanges";
 import { stageLabels, stageRank, funnelStages } from "@/lib/labels";
 import { Prisma } from "@prisma/client";
@@ -28,7 +28,11 @@ export async function GET(req: NextRequest) {
 
     const prospects = await prisma.prospect.findMany({
       where: { AND: and },
-      include: { tags: { include: { tag: true } }, assignedUser: true },
+      include: {
+        tags: { include: { tag: true } },
+        assignedUser: true,
+        tasks: { where: { completed: false }, select: { dueDate: true } },
+      },
     });
 
     const nuevos = prospects.length;
@@ -39,7 +43,8 @@ export async function GET(req: NextRequest) {
     const ventasGanadas = ganados.reduce((s, p) => s + (p.estimatedValue || 0), 0);
 
     const sinSeguimiento = activos.filter((p) => {
-      const status = getAlertStatus(p.lastActivityAt, p.stage, p.nextActionDate, p.nextAction);
+      const openFollowUp = hasOpenFollowUp(p.nextAction, p.nextActionDate, p.tasks.map((t) => t.dueDate));
+      const status = getAlertStatus(p.lastActivityAt, p.stage, openFollowUp);
       return status === "yellow" || status === "red";
     });
 

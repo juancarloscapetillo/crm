@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError, jsonError, canManageAllProspects } from "@/lib/api";
-import { getAlertStatus } from "@/lib/alert";
+import { getAlertStatus, hasOpenFollowUp } from "@/lib/alert";
 
 function buildWhere(searchParams: URLSearchParams, userId: string, role: string): Prisma.ProspectWhereInput {
   const where: Prisma.ProspectWhereInput = {};
@@ -76,17 +76,21 @@ export async function GET(req: NextRequest) {
         company: true,
         tags: { include: { tag: true } },
         favoritedBy: { where: { userId: user.id } },
-        _count: { select: { tasks: { where: { completed: false } } } },
+        tasks: { where: { completed: false }, select: { dueDate: true } },
       },
       orderBy: { updatedAt: "desc" },
     });
 
     const alertFilter = req.nextUrl.searchParams.get("alert");
-    const withAlert = prospects.map((p) => ({
-      ...p,
-      alertStatus: getAlertStatus(p.lastActivityAt, p.stage, p.nextActionDate, p.nextAction),
-      isFavorite: p.favoritedBy.length > 0,
-    }));
+    const withAlert = prospects.map((p) => {
+      const openFollowUp = hasOpenFollowUp(p.nextAction, p.nextActionDate, p.tasks.map((t) => t.dueDate));
+      return {
+        ...p,
+        alertStatus: getAlertStatus(p.lastActivityAt, p.stage, openFollowUp),
+        hasOpenFollowUp: openFollowUp,
+        isFavorite: p.favoritedBy.length > 0,
+      };
+    });
 
     let filtered = withAlert;
     if (alertFilter && alertFilter !== "todos") {

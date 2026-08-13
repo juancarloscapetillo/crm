@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError, jsonError, canManageAllProspects } from "@/lib/api";
-import { getAlertStatus } from "@/lib/alert";
+import { getAlertStatus, hasOpenFollowUp } from "@/lib/alert";
 import { stageLabels, stageRank } from "@/lib/labels";
 import { Stage } from "@prisma/client";
 
@@ -25,10 +25,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     if (!prospect) return jsonError("Prospecto no encontrado", 404);
     if (!canManageAllProspects(user.role) && prospect.assignedUserId !== user.id) return jsonError("No autorizado", 403);
 
+    const openFollowUp = hasOpenFollowUp(
+      prospect.nextAction,
+      prospect.nextActionDate,
+      prospect.tasks.filter((t) => !t.completed).map((t) => t.dueDate)
+    );
+
     return NextResponse.json({
       prospect: {
         ...prospect,
-        alertStatus: getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate, prospect.nextAction),
+        alertStatus: getAlertStatus(prospect.lastActivityAt, prospect.stage, openFollowUp),
+        hasOpenFollowUp: openFollowUp,
         isFavorite: prospect.favoritedBy.length > 0,
       },
     });

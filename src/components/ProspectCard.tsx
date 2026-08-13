@@ -21,6 +21,7 @@ export type ProspectCardData = {
   stage: Stage;
   nextAction?: string | null;
   nextActionDate?: string | null;
+  hasOpenFollowUp?: boolean;
   tags: { tag: { id: string; name: string; color: string } }[];
   sourceType: keyof typeof sourceLabels;
   alertStatus: AlertStatus;
@@ -51,7 +52,7 @@ export default function ProspectCard({
   }
 
   const liveAlertStatus = prospect.lastActivityAt
-    ? getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.nextActionDate, prospect.nextAction)
+    ? getAlertStatus(prospect.lastActivityAt, prospect.stage, prospect.hasOpenFollowUp)
     : prospect.alertStatus;
   const borderColor = { green: "#3FBE7A", yellow: "#F0B429", red: "#E15B5B", closed: "#E5E7EB" }[liveAlertStatus];
 
