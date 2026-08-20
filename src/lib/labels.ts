@@ -13,6 +13,15 @@ export const stageLabels: Record<Stage, string> = {
 export const stageOrder: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
 export const pipelineStages: Stage[] = ["SIN_CONTACTAR", "INFORMES", "VISITA", "NEGOCIACION", "APARTADO", "GANADO", "PERDIDO"];
 
+export const lossReasonOptions = [
+  "Fuera de presupuesto",
+  "Compró otro proyecto",
+  "El proyecto no fue de su agrado",
+  "Postergó su búsqueda, no le urge",
+  "No busca comprar en Mérida",
+  "Otro",
+];
+
 // Ranks the real progress a prospect made through the funnel. PERDIDO isn't a
 // stage of progress (it's an outcome), so it has no rank and never counts as
 // a prospect's max stage reached.

@@ -9,7 +9,7 @@ import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick } from "@/lib/hooks";
 import { formatCurrency, formatDate, formatDateTime, sourceLabels, activityIcons, activityLabels, stageLabels } from "@/lib/labels";
-import { pipelineStages } from "@/lib/labels";
+import { pipelineStages, lossReasonOptions } from "@/lib/labels";
 import { Stage } from "@prisma/client";
 import { getAlertStatus } from "@/lib/alert";
 
@@ -31,6 +31,7 @@ export default function ProspectProfilePage() {
   const [showLossReason, setShowLossReason] = useState(false);
   const [pendingStage, setPendingStage] = useState<Stage | null>(null);
   const [lossReason, setLossReason] = useState("");
+  const [lossReasonOther, setLossReasonOther] = useState("");
   const [activityType, setActivityType] = useState("COMENTARIO");
   const [activityContent, setActivityContent] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
@@ -71,6 +72,8 @@ export default function ProspectProfilePage() {
   async function changeStage(stage: Stage) {
     if (stage === "PERDIDO") {
       setPendingStage(stage);
+      setLossReason("");
+      setLossReasonOther("");
       setShowLossReason(true);
       return;
     }
@@ -92,6 +95,7 @@ export default function ProspectProfilePage() {
     setShowLossReason(false);
     setPendingStage(null);
     setLossReason("");
+    setLossReasonOther("");
     reload();
   }
 
@@ -482,10 +486,28 @@ export default function ProspectProfilePage() {
       <Modal open={showLossReason} onClose={() => setShowLossReason(false)} title="Motivo de pérdida">
         <div className="space-y-3">
           <p className="text-sm text-gray-600">Indica por qué se perdió este prospecto.</p>
-          <textarea className="input" rows={3} value={lossReason} onChange={(e) => setLossReason(e.target.value)} placeholder="Ej. Presupuesto insuficiente" />
+          <select className="input" value={lossReason} onChange={(e) => setLossReason(e.target.value)}>
+            <option value="">Selecciona un motivo...</option>
+            {lossReasonOptions.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+          {lossReason === "Otro" && (
+            <textarea
+              className="input"
+              rows={2}
+              value={lossReasonOther}
+              onChange={(e) => setLossReasonOther(e.target.value)}
+              placeholder="Especifica el motivo..."
+            />
+          )}
           <div className="flex justify-end gap-2">
             <button className="btn-secondary" onClick={() => setShowLossReason(false)}>Cancelar</button>
-            <button className="btn-danger" onClick={() => pendingStage && doChangeStage(pendingStage, lossReason)}>
+            <button
+              className="btn-danger"
+              disabled={!lossReason || (lossReason === "Otro" && !lossReasonOther.trim())}
+              onClick={() => pendingStage && doChangeStage(pendingStage, lossReason === "Otro" ? lossReasonOther.trim() : lossReason)}
+            >
               Confirmar pérdida
             </button>
           </div>

@@ -13,7 +13,7 @@ import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import ProspectCard, { ProspectCardData } from "@/components/ProspectCard";
 import Fireworks from "@/components/Fireworks";
 import { useFetch, useTick, useCatalogs } from "@/lib/hooks";
-import { pipelineStages, stageLabels, stageColors, sourceLabels, formatCurrency, formatDate } from "@/lib/labels";
+import { pipelineStages, stageLabels, stageColors, sourceLabels, formatCurrency, formatDate, lossReasonOptions } from "@/lib/labels";
 import { toQueryString } from "@/lib/queryString";
 import { Stage } from "@prisma/client";
 import { hoursSince, alertLabel } from "@/lib/alert";
@@ -95,6 +95,10 @@ export default function PipelinePage() {
   const [localOverride, setLocalOverride] = useState<Record<string, Stage>>({});
   const [showCreate, setShowCreate] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [showLossReason, setShowLossReason] = useState(false);
+  const [pendingLossId, setPendingLossId] = useState<string | null>(null);
+  const [lossReason, setLossReason] = useState("");
+  const [lossReasonOther, setLossReasonOther] = useState("");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
 
@@ -157,16 +161,10 @@ export default function PipelinePage() {
     if ((current as any).stage === newStage) return;
 
     if (newStage === "PERDIDO") {
-      const reason = window.prompt("Motivo de pérdida (opcional):") || "";
-      setLocalOverride((o) => ({ ...o, [prospectId]: newStage }));
-      const res = await fetch(`/api/prospects/${prospectId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: newStage, lossReason: reason }),
-      });
-      if (!res.ok) toast.error("No se pudo mover el prospecto");
-      else toast.success("Prospecto movido a Perdido");
-      reload();
+      setPendingLossId(prospectId);
+      setLossReason("");
+      setLossReasonOther("");
+      setShowLossReason(true);
       return;
     }
 
@@ -183,6 +181,22 @@ export default function PipelinePage() {
     }
     toast.success(`Movido a ${stageLabels[newStage]}`);
     if (newStage === "GANADO") setCelebrate(true);
+    reload();
+  }
+
+  async function confirmLoss() {
+    if (!pendingLossId || !lossReason) return;
+    const reason = lossReason === "Otro" ? lossReasonOther.trim() : lossReason;
+    setLocalOverride((o) => ({ ...o, [pendingLossId]: "PERDIDO" }));
+    const res = await fetch(`/api/prospects/${pendingLossId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage: "PERDIDO", lossReason: reason }),
+    });
+    if (!res.ok) toast.error("No se pudo mover el prospecto");
+    else toast.success("Prospecto movido a Perdido");
+    setShowLossReason(false);
+    setPendingLossId(null);
     reload();
   }
 
@@ -414,6 +428,37 @@ export default function PipelinePage() {
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nuevo prospecto" wide>
         <ProspectForm onSubmit={handleCreate} submitLabel="Crear prospecto" />
+      </Modal>
+
+      <Modal open={showLossReason} onClose={() => setShowLossReason(false)} title="Motivo de pérdida">
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Indica por qué se perdió este prospecto.</p>
+          <select className="input" value={lossReason} onChange={(e) => setLossReason(e.target.value)}>
+            <option value="">Selecciona un motivo...</option>
+            {lossReasonOptions.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+          {lossReason === "Otro" && (
+            <textarea
+              className="input"
+              rows={2}
+              value={lossReasonOther}
+              onChange={(e) => setLossReasonOther(e.target.value)}
+              placeholder="Especifica el motivo..."
+            />
+          )}
+          <div className="flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowLossReason(false)}>Cancelar</button>
+            <button
+              className="btn-danger"
+              disabled={!lossReason || (lossReason === "Otro" && !lossReasonOther.trim())}
+              onClick={confirmLoss}
+            >
+              Confirmar pérdida
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
