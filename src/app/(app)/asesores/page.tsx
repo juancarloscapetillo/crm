@@ -249,6 +249,11 @@ export default function AsesoresPage() {
               </table>
             </div>
           )}
+          {!loading && filteredAdvisors.length > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              Total: {filteredAdvisors.length} {filteredAdvisors.length === 1 ? "asesor" : "asesores"}
+            </p>
+          )}
         </div>
       ) : (
         <div className="p-4 sm:p-6">
@@ -302,6 +307,11 @@ export default function AsesoresPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loadingCompanies && filteredCompanies.length > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              Total: {filteredCompanies.length} {filteredCompanies.length === 1 ? "inmobiliaria" : "inmobiliarias"}
+            </p>
           )}
         </div>
       )}
