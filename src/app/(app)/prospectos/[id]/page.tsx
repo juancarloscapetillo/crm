@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake, Pin, PinOff } from "lucide-react";
+import { Star, Trash2, Paperclip, Download, Plus, CheckCircle2, Circle, Handshake, Pin, PinOff, Copy } from "lucide-react";
 import { PageHeader, Modal, StageBadge, AlertDot, TagPill, ConfirmDialog } from "@/components/ui";
 import ProspectForm, { ProspectFormValues } from "@/components/ProspectForm";
 import Fireworks from "@/components/Fireworks";
@@ -38,6 +38,7 @@ export default function ProspectProfilePage() {
   const [taskDue, setTaskDue] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
 
   const prospect = data?.prospect;
@@ -107,6 +108,19 @@ export default function ProspectProfilePage() {
     }
     toast.success("Prospecto eliminado");
     router.push("/pipeline");
+  }
+
+  async function handleDuplicate() {
+    setDuplicating(true);
+    const res = await fetch(`/api/prospects/${id}/duplicate`, { method: "POST" });
+    setDuplicating(false);
+    if (!res.ok) {
+      toast.error((await res.json()).error || "No se pudo duplicar el prospecto");
+      return;
+    }
+    const { prospect: copy } = await res.json();
+    toast.success("Prospecto duplicado");
+    router.push(`/prospectos/${copy.id}`);
   }
 
   async function submitActivity(e: React.FormEvent) {
@@ -217,6 +231,9 @@ export default function ProspectProfilePage() {
               <Star size={16} className={prospect.isFavorite ? "fill-calume-gold text-calume-gold" : ""} />
             </button>
             <button className="btn-secondary" onClick={() => setShowEdit(true)}>Editar</button>
+            <button className="btn-secondary" onClick={handleDuplicate} disabled={duplicating} title="Duplicar prospecto">
+              <Copy size={15} /> {duplicating ? "Duplicando..." : "Duplicar"}
+            </button>
             <button className="btn-danger" onClick={() => setShowDelete(true)}>
               <Trash2 size={15} />
             </button>
