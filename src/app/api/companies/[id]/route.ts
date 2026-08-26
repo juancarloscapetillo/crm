@@ -13,6 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
           include: { assignedUser: true, project: true },
           orderBy: { createdAt: "desc" },
         },
+        noteEntries: { include: { user: true }, orderBy: { createdAt: "desc" } },
       },
     });
     if (!company) return jsonError("Empresa no encontrada", 404);

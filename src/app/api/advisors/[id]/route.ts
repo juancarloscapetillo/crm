@@ -10,6 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       include: {
         company: true,
         prospects: { include: { assignedUser: true, project: true }, orderBy: { createdAt: "desc" } },
+        notes: { include: { user: true }, orderBy: { createdAt: "desc" } },
       },
     });
     if (!advisor) return jsonError("Asesor no encontrado", 404);

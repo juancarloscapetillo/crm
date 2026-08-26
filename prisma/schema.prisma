@@ -64,6 +64,7 @@ model User {
   createdTasks    Task[]           @relation("CreatedTask")
   favorites       Favorite[]
   createdMarketing MarketingInvestment[]
+  notes           Note[]
 }
 
 model Project {
@@ -101,6 +102,7 @@ model Company {
 
   advisors  Advisor[]
   prospects Prospect[]
+  noteEntries Note[]
 }
 
 model Advisor {
@@ -114,6 +116,20 @@ model Advisor {
   company      Company? @relation(fields: [companyId], references: [id])
 
   prospects Prospect[]
+  notes     Note[]
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  advisorId String?
+  advisor   Advisor? @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  content   String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Tag {

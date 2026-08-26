@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, Pin, PinOff } from "lucide-react";
 import { PageHeader, Modal, StageBadge, ConfirmDialog } from "@/components/ui";
 import { useFetch, useCatalogs } from "@/lib/hooks";
-import { formatCurrency, formatPercent, formatDate } from "@/lib/labels";
+import { formatCurrency, formatPercent, formatDate, formatDateTime } from "@/lib/labels";
 
 export default function AsesorProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +18,7 @@ export default function AsesorProfilePage() {
   const [showDelete, setShowDelete] = useState(false);
   const advisor = data?.advisor;
   const [form, setForm] = useState<any>(null);
+  const [noteContent, setNoteContent] = useState("");
 
   function handleBack() {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -56,6 +57,37 @@ export default function AsesorProfilePage() {
     }
     toast.success("Asesor eliminado");
     router.push("/asesores");
+  }
+
+  async function submitNote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!noteContent.trim()) return;
+    const res = await fetch(`/api/advisors/${id}/notes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: noteContent }),
+    });
+    if (!res.ok) {
+      toast.error("No se pudo agregar la nota");
+      return;
+    }
+    setNoteContent("");
+    toast.success("Nota agregada");
+    reload();
+  }
+
+  async function toggleNotePin(noteId: string, pinned: boolean) {
+    const res = await fetch(`/api/advisors/${id}/notes/${noteId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned }),
+    });
+    if (!res.ok) {
+      toast.error("No se pudo actualizar la nota");
+      return;
+    }
+    toast.success(pinned ? "Nota fijada" : "Nota desfijada");
+    reload();
   }
 
   if (loading) return <div className="p-6 text-sm text-gray-500">Cargando...</div>;
@@ -104,7 +136,7 @@ export default function AsesorProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Datos de contacto</h3>
             <dl className="space-y-2 text-sm">
@@ -116,8 +148,75 @@ export default function AsesorProfilePage() {
             </dl>
           </div>
 
-          <div className="lg:col-span-2 card p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Prospectos generados</h3>
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Notas</h3>
+            <form onSubmit={submitNote} className="flex flex-col gap-2 mb-3">
+              <textarea
+                className="input"
+                rows={2}
+                placeholder="Escribe una nota..."
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+              />
+              <button type="submit" className="btn-primary text-xs self-end">
+                <Plus size={14} /> Agregar nota
+              </button>
+            </form>
+            {(() => {
+              const notes = advisor.notes as any[];
+              const pinnedNote = notes.find((n) => n.pinned);
+              const otherNotes = notes.filter((n) => !n.pinned);
+              return (
+                <>
+                  {pinnedNote && (
+                    <div className="mb-2 rounded-lg border border-calume-gold/40 bg-calume-gold/10 px-3 py-2">
+                      <div className="flex items-start gap-2">
+                        <Pin size={14} className="text-calume-gold shrink-0 mt-0.5 fill-calume-gold" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-base font-medium text-gray-900 whitespace-pre-wrap">{pinnedNote.content}</span>
+                          <span className="block text-[11px] text-gray-500 mt-0.5">
+                            {pinnedNote.user?.name || "Sistema"} · {formatDateTime(pinnedNote.createdAt)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => toggleNotePin(pinnedNote.id, false)}
+                          title="Desfijar nota"
+                          className="text-gray-400 hover:text-gray-600 shrink-0"
+                        >
+                          <PinOff size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                    {notes.length === 0 && <p className="text-xs text-gray-400">Sin notas registradas.</p>}
+                    {otherNotes.map((n) => (
+                      <div key={n.id} className="group flex items-start gap-2 text-sm px-2 py-1.5 rounded hover:bg-gray-50">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-gray-800 whitespace-pre-wrap">{n.content}</span>
+                          <span className="block text-[11px] text-gray-400 mt-0.5">
+                            {n.user?.name || "Sistema"} · {formatDateTime(n.createdAt)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => toggleNotePin(n.id, true)}
+                          title="Fijar nota"
+                          className="text-gray-300 hover:text-calume-gold shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Pin size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+        </div>
+
+        <div className="card p-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Prospectos generados</h3>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {advisor.prospects.length === 0 && <p className="text-xs text-gray-400">Sin prospectos registrados.</p>}
               {advisor.prospects.map((p: any) => (
@@ -132,7 +231,6 @@ export default function AsesorProfilePage() {
             </div>
           </div>
         </div>
-      </div>
 
       {form && (
         <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Editar asesor">
