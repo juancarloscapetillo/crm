@@ -25,6 +25,19 @@ const tabs = [
   { key: "inmobiliarias", label: "Inmobiliarias" },
 ];
 
+function matchesEstatus(activeCount: number, filter: string) {
+  if (filter === "activo") return activeCount > 0;
+  if (filter === "inactivo") return activeCount === 0;
+  return true;
+}
+
+function matchesAlerta(days: number | null, filter: string) {
+  const hasAlert = days !== null && days > DAYS_WITHOUT_ACTIVE_WARNING;
+  if (filter === "con") return hasAlert;
+  if (filter === "sin") return !hasAlert;
+  return true;
+}
+
 export default function AsesoresPage() {
   const [tab, setTab] = useState<"asesores" | "inmobiliarias">("asesores");
 
@@ -32,6 +45,10 @@ export default function AsesoresPage() {
   const { data: companiesData, loading: loadingCompanies, reload: reloadCompanies } = useFetch<{ companies: any[] }>("/api/companies");
   const companies = companiesData?.companies || [];
   const [showCreate, setShowCreate] = useState(false);
+
+  const [estatusFilter, setEstatusFilter] = useState("");
+  const [alertaFilter, setAlertaFilter] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("");
   const [form, setForm] = useState({ name: "", phone: "", email: "", companyId: "" });
   const [saving, setSaving] = useState(false);
 
@@ -87,6 +104,17 @@ export default function AsesoresPage() {
 
   const advisors = data?.advisors || [];
 
+  const filteredAdvisors = advisors.filter(
+    (a) =>
+      matchesEstatus(a.activeProspectCount, estatusFilter) &&
+      matchesAlerta(a.daysSinceActiveProspect, alertaFilter) &&
+      (!companyFilter || a.company?.id === companyFilter)
+  );
+  const filteredCompanies = companies.filter(
+    (c: any) => matchesEstatus(c.activeProspectCount, estatusFilter) && matchesAlerta(c.daysSinceActiveProspect, alertaFilter)
+  );
+  const filtersActive = !!estatusFilter || !!alertaFilter || !!companyFilter;
+
   return (
     <div>
       <PageHeader
@@ -124,13 +152,60 @@ export default function AsesoresPage() {
         </div>
       </div>
 
+      <div className="px-4 sm:px-6 pt-4">
+        <div className="flex flex-wrap items-end gap-3 bg-white border border-gray-200 rounded-xl2 p-3">
+          <div>
+            <label className="label">Estatus</label>
+            <select className="input" value={estatusFilter} onChange={(e) => setEstatusFilter(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Alerta</label>
+            <select className="input" value={alertaFilter} onChange={(e) => setAlertaFilter(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="con">Con alerta (+{DAYS_WITHOUT_ACTIVE_WARNING} días)</option>
+              <option value="sin">Sin alerta</option>
+            </select>
+          </div>
+          {tab === "asesores" && (
+            <div>
+              <label className="label">Empresa / Inmobiliaria</label>
+              <select className="input" value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
+                <option value="">Todas</option>
+                {companies.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.commercialName}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {filtersActive && (
+            <button
+              className="text-sm text-gray-500 hover:text-calume-navy underline pb-2"
+              onClick={() => {
+                setEstatusFilter("");
+                setAlertaFilter("");
+                setCompanyFilter("");
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      </div>
+
       {tab === "asesores" ? (
         <div className="p-4 sm:p-6">
           {loading && <p className="text-sm text-gray-500">Cargando...</p>}
           {!loading && advisors.length === 0 && (
             <EmptyState icon={<UserCog size={40} />} title="Aún no hay asesores registrados" />
           )}
-          {!loading && advisors.length > 0 && (
+          {!loading && advisors.length > 0 && filteredAdvisors.length === 0 && (
+            <EmptyState icon={<UserCog size={40} />} title="Ningún asesor coincide con estos filtros" />
+          )}
+          {!loading && filteredAdvisors.length > 0 && (
             <div className="overflow-x-auto card">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -147,7 +222,7 @@ export default function AsesoresPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {advisors.map((a) => (
+                  {filteredAdvisors.map((a) => (
                     <tr key={a.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2">
                         <Link href={`/asesores/${a.id}`} className="text-calume-navy font-medium hover:underline">
@@ -181,7 +256,10 @@ export default function AsesoresPage() {
           {!loadingCompanies && companies.length === 0 && (
             <EmptyState icon={<Building2 size={40} />} title="Aún no hay inmobiliarias registradas" />
           )}
-          {!loadingCompanies && companies.length > 0 && (
+          {!loadingCompanies && companies.length > 0 && filteredCompanies.length === 0 && (
+            <EmptyState icon={<Building2 size={40} />} title="Ninguna inmobiliaria coincide con estos filtros" />
+          )}
+          {!loadingCompanies && filteredCompanies.length > 0 && (
             <div className="overflow-x-auto card">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -198,7 +276,7 @@ export default function AsesoresPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {companies.map((c: any) => (
+                  {filteredCompanies.map((c: any) => (
                     <tr key={c.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2">
                         <Link href={`/empresas/${c.id}`} className="text-calume-navy font-medium hover:underline">
