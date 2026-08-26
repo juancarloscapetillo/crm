@@ -116,6 +116,16 @@ export async function POST(req: NextRequest) {
     if (!body.name?.trim()) return jsonError("El nombre del prospecto es obligatorio");
 
     const now = new Date();
+    const initialNote: string | null = body.notes?.trim() || null;
+    const activitiesToCreate: { type: "CREACION" | "COMENTARIO"; content: string; userId: string }[] = [
+      {
+        type: "CREACION",
+        content: initialNote ? `Prospecto creado con la nota: "${initialNote}"` : "Prospecto creado",
+        userId: user.id,
+      },
+    ];
+    if (initialNote) activitiesToCreate.push({ type: "COMENTARIO", content: initialNote, userId: user.id });
+
     const prospect = await prisma.prospect.create({
       data: {
         name: body.name.trim(),
@@ -131,7 +141,9 @@ export async function POST(req: NextRequest) {
         budget: body.budget ? Number(body.budget) : null,
         paymentMethod: body.paymentMethod || null,
         estimatedValue: body.estimatedValue ? Number(body.estimatedValue) : null,
-        notes: body.notes || null,
+        // La nota inicial vive como actividad (Línea de tiempo + Notas), no aquí,
+        // para no repetirla también en el Expediente.
+        notes: null,
         nextAction: body.nextAction || null,
         nextActionDate: body.nextActionDate ? new Date(body.nextActionDate) : null,
         stage: "SIN_CONTACTAR",
@@ -140,13 +152,7 @@ export async function POST(req: NextRequest) {
         lastActivityAt: now,
         entryDate: now,
         tags: body.tagIds?.length ? { create: body.tagIds.map((id: string) => ({ tagId: id })) } : undefined,
-        activities: {
-          create: {
-            type: "CREACION",
-            content: "Prospecto creado",
-            userId: user.id,
-          },
-        },
+        activities: { create: activitiesToCreate },
       },
       include: { tags: { include: { tag: true } }, assignedUser: true },
     });
