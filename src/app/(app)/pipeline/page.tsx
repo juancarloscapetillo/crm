@@ -99,6 +99,9 @@ export default function PipelinePage() {
   const [pendingLossId, setPendingLossId] = useState<string | null>(null);
   const [lossReason, setLossReason] = useState("");
   const [lossReasonOther, setLossReasonOther] = useState("");
+  const [showUnitPrompt, setShowUnitPrompt] = useState(false);
+  const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
+  const [unitValue, setUnitValue] = useState("");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
 
@@ -168,6 +171,13 @@ export default function PipelinePage() {
       return;
     }
 
+    if (newStage === "APARTADO" && !(current as any).unitInterest?.trim()) {
+      setPendingUnitId(prospectId);
+      setUnitValue("");
+      setShowUnitPrompt(true);
+      return;
+    }
+
     setLocalOverride((o) => ({ ...o, [prospectId]: newStage }));
     const res = await fetch(`/api/prospects/${prospectId}`, {
       method: "PATCH",
@@ -197,6 +207,22 @@ export default function PipelinePage() {
     else toast.success("Prospecto movido a Perdido");
     setShowLossReason(false);
     setPendingLossId(null);
+    reload();
+  }
+
+  async function confirmUnit() {
+    if (!pendingUnitId || !unitValue.trim()) return;
+    setLocalOverride((o) => ({ ...o, [pendingUnitId]: "APARTADO" }));
+    const res = await fetch(`/api/prospects/${pendingUnitId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage: "APARTADO", unitInterest: unitValue.trim() }),
+    });
+    if (!res.ok) toast.error("No se pudo mover el prospecto");
+    else toast.success("Prospecto movido a Apartado");
+    setShowUnitPrompt(false);
+    setPendingUnitId(null);
+    setUnitValue("");
     reload();
   }
 
@@ -456,6 +482,25 @@ export default function PipelinePage() {
               onClick={confirmLoss}
             >
               Confirmar pérdida
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showUnitPrompt} onClose={() => setShowUnitPrompt(false)} title="Unidad apartada">
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Este prospecto no tiene una unidad asignada. Indica qué unidad está apartando antes de continuar.</p>
+          <input
+            className="input"
+            value={unitValue}
+            onChange={(e) => setUnitValue(e.target.value)}
+            placeholder="Ej. Depa 302, torre B"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowUnitPrompt(false)}>Cancelar</button>
+            <button className="btn-gold" disabled={!unitValue.trim()} onClick={confirmUnit}>
+              Confirmar apartado
             </button>
           </div>
         </div>

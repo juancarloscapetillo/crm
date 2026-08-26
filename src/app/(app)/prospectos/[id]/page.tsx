@@ -32,6 +32,8 @@ export default function ProspectProfilePage() {
   const [pendingStage, setPendingStage] = useState<Stage | null>(null);
   const [lossReason, setLossReason] = useState("");
   const [lossReasonOther, setLossReasonOther] = useState("");
+  const [showUnitPrompt, setShowUnitPrompt] = useState(false);
+  const [unitValue, setUnitValue] = useState("");
   const [activityType, setActivityType] = useState("COMENTARIO");
   const [activityContent, setActivityContent] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
@@ -78,14 +80,20 @@ export default function ProspectProfilePage() {
       setShowLossReason(true);
       return;
     }
+    if (stage === "APARTADO" && !prospect.unitInterest?.trim()) {
+      setPendingStage(stage);
+      setUnitValue("");
+      setShowUnitPrompt(true);
+      return;
+    }
     await doChangeStage(stage);
   }
 
-  async function doChangeStage(stage: Stage, reason?: string) {
+  async function doChangeStage(stage: Stage, reason?: string, unit?: string) {
     const res = await fetch(`/api/prospects/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stage, lossReason: reason }),
+      body: JSON.stringify({ stage, lossReason: reason, ...(unit ? { unitInterest: unit } : {}) }),
     });
     if (!res.ok) {
       toast.error("No se pudo cambiar la etapa");
@@ -94,9 +102,11 @@ export default function ProspectProfilePage() {
     toast.success(`Etapa actualizada a ${stageLabels[stage]}`);
     if (stage === "GANADO") setCelebrate(true);
     setShowLossReason(false);
+    setShowUnitPrompt(false);
     setPendingStage(null);
     setLossReason("");
     setLossReasonOther("");
+    setUnitValue("");
     reload();
   }
 
@@ -526,6 +536,29 @@ export default function ProspectProfilePage() {
               onClick={() => pendingStage && doChangeStage(pendingStage, lossReason === "Otro" ? lossReasonOther.trim() : lossReason)}
             >
               Confirmar pérdida
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showUnitPrompt} onClose={() => setShowUnitPrompt(false)} title="Unidad apartada">
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Este prospecto no tiene una unidad asignada. Indica qué unidad está apartando antes de continuar.</p>
+          <input
+            className="input"
+            value={unitValue}
+            onChange={(e) => setUnitValue(e.target.value)}
+            placeholder="Ej. Depa 302, torre B"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowUnitPrompt(false)}>Cancelar</button>
+            <button
+              className="btn-gold"
+              disabled={!unitValue.trim()}
+              onClick={() => pendingStage && doChangeStage(pendingStage, undefined, unitValue.trim())}
+            >
+              Confirmar apartado
             </button>
           </div>
         </div>
