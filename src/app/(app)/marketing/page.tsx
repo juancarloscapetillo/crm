@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { PageHeader, Modal, StatCard, EmptyState, ConfirmDialog } from "@/components/ui";
 import { useFetch, useCatalogs } from "@/lib/hooks";
-import { formatCurrency, formatDate, formatPercent } from "@/lib/labels";
+import { formatCurrency, formatDate } from "@/lib/labels";
 
 const emptyForm = {
   campaign: "",
@@ -86,13 +86,8 @@ export default function MarketingPage() {
         }
       />
       <div className="p-4 sm:p-6 space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="max-w-xs">
           <StatCard label="Inversión total" value={formatCurrency(totals.amount)} accent="gold" />
-          <StatCard label="CAC" value={totals.cac !== null ? formatCurrency(totals.cac) : "Datos insuficientes"} />
-          <StatCard label="Costo por lead" value={totals.costPerLead !== null ? formatCurrency(totals.costPerLead) : "Datos insuficientes"} />
-          <StatCard label="Costo por visita" value={totals.costPerVisit !== null ? formatCurrency(totals.costPerVisit) : "Datos insuficientes"} />
-          <StatCard label="Conversión lead→venta" value={formatPercent(totals.conversion)} />
-          <StatCard label="ROI" value={totals.roi !== null ? formatPercent(totals.roi) : "Datos insuficientes"} hint={totals.roi === null ? "Falta ingreso atribuido" : undefined} />
         </div>
 
         {loading && <p className="text-sm text-gray-500">Cargando...</p>}
