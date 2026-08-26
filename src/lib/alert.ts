@@ -64,3 +64,23 @@ export const alertColors: Record<AlertStatus, string> = {
 export function hoursSince(date: Date | string): number {
   return (Date.now() - new Date(date).getTime()) / HOUR_MS;
 }
+
+export const DAYS_WITHOUT_ACTIVE_WARNING = 30;
+
+/**
+ * Días desde que un asesor/inmobiliaria dejó de tener al menos un
+ * prospecto activo (ni Ganado ni Perdido). null si actualmente sí tiene
+ * uno (la columna no aplica). Se cuenta desde la actividad más reciente
+ * de cualquiera de sus prospectos; si nunca tuvo ninguno, desde su alta.
+ */
+export function daysSinceLastActive(
+  activeProspectCount: number,
+  prospects: { lastActivityAt: Date | string }[],
+  fallbackSince: Date | string
+): number | null {
+  if (activeProspectCount > 0) return null;
+  const reference = prospects.length
+    ? Math.max(...prospects.map((p) => new Date(p.lastActivityAt).getTime()))
+    : new Date(fallbackSince).getTime();
+  return Math.floor((Date.now() - reference) / (HOUR_MS * 24));
+}

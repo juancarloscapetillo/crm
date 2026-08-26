@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, handleApiError, jsonError } from "@/lib/api";
-
-const ACTIVE_WINDOW_DAYS = 30;
+import { daysSinceLastActive } from "@/lib/alert";
 
 export async function GET() {
   try {
@@ -15,13 +14,10 @@ export async function GET() {
       },
     });
 
-    const cutoff = new Date(Date.now() - ACTIVE_WINDOW_DAYS * 86400000);
-
     const result = advisors.map((a) => {
       const total = a.prospects.length;
       const won = a.prospects.filter((p) => p.stage === "GANADO");
       const activeProspects = a.prospects.filter((p) => p.stage !== "GANADO" && p.stage !== "PERDIDO");
-      const hasRecentActivity = a.prospects.some((p) => new Date(p.lastActivityAt) >= cutoff);
       const revenue = won.reduce((s, p) => s + (p.estimatedValue || 0), 0);
       return {
         id: a.id,
@@ -36,7 +32,7 @@ export async function GET() {
         salesCount: won.length,
         conversion: total > 0 ? won.length / total : null,
         revenue,
-        isActiveByActivity: hasRecentActivity,
+        daysSinceActiveProspect: daysSinceLastActive(activeProspects.length, a.prospects, a.registeredAt),
       };
     });
 

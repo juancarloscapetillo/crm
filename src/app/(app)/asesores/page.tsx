@@ -3,10 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Plus, UserCog, Building2 } from "lucide-react";
+import { Plus, UserCog, Building2, AlertTriangle } from "lucide-react";
 import { PageHeader, Modal, EmptyState } from "@/components/ui";
 import { useFetch } from "@/lib/hooks";
 import { formatCurrency, formatPercent } from "@/lib/labels";
+import { DAYS_WITHOUT_ACTIVE_WARNING } from "@/lib/alert";
+
+function DaysSinceActiveCell({ days }: { days: number | null }) {
+  if (days === null) return <span className="text-gray-400">—</span>;
+  const warn = days > DAYS_WITHOUT_ACTIVE_WARNING;
+  return (
+    <span className={`inline-flex items-center gap-1 ${warn ? "text-alert-red font-medium" : "text-gray-600"}`}>
+      {warn && <AlertTriangle size={13} />}
+      {days} {days === 1 ? "día" : "días"}
+    </span>
+  );
+}
 
 const tabs = [
   { key: "asesores", label: "Asesores" },
@@ -127,6 +139,8 @@ export default function AsesoresPage() {
                     <th className="text-left px-4 py-2">Empresa</th>
                     <th className="text-center px-4 py-2">Estatus</th>
                     <th className="text-center px-4 py-2">Prospectos</th>
+                    <th className="text-center px-4 py-2">Prospectos activos</th>
+                    <th className="text-center px-4 py-2">Días sin prospecto activo</th>
                     <th className="text-center px-4 py-2">Ventas</th>
                     <th className="text-center px-4 py-2">Conversión</th>
                     <th className="text-center px-4 py-2">Valor vendido</th>
@@ -142,11 +156,15 @@ export default function AsesoresPage() {
                       </td>
                       <td className="px-4 py-2 text-gray-500">{a.company?.name || "—"}</td>
                       <td className="px-4 py-2 text-center">
-                        <span className={`badge ${a.isActiveByActivity ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                          {a.isActiveByActivity ? "Activo" : "Inactivo"}
+                        <span className={`badge ${a.activeProspectCount > 0 ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {a.activeProspectCount > 0 ? "Activo" : "Inactivo"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-center">{a.prospectCount}</td>
+                      <td className="px-4 py-2 text-center">{a.activeProspectCount}</td>
+                      <td className="px-4 py-2 text-center">
+                        <DaysSinceActiveCell days={a.daysSinceActiveProspect} />
+                      </td>
                       <td className="px-4 py-2 text-center">{a.salesCount}</td>
                       <td className="px-4 py-2 text-center">{formatPercent(a.conversion)}</td>
                       <td className="px-4 py-2 text-center">{formatCurrency(a.revenue)}</td>
@@ -172,6 +190,8 @@ export default function AsesoresPage() {
                     <th className="text-center px-4 py-2">Estatus</th>
                     <th className="text-center px-4 py-2">Asesores</th>
                     <th className="text-center px-4 py-2">Prospectos</th>
+                    <th className="text-center px-4 py-2">Prospectos activos</th>
+                    <th className="text-center px-4 py-2">Días sin prospecto activo</th>
                     <th className="text-center px-4 py-2">Ventas</th>
                     <th className="text-center px-4 py-2">Conversión</th>
                     <th className="text-center px-4 py-2">Valor vendido</th>
@@ -186,12 +206,16 @@ export default function AsesoresPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-2 text-center">
-                        <span className={`badge ${c.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                          {c.active ? "Activa" : "Inactiva"}
+                        <span className={`badge ${c.activeProspectCount > 0 ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {c.activeProspectCount > 0 ? "Activa" : "Inactiva"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-center">{c.advisorCount}</td>
                       <td className="px-4 py-2 text-center">{c.prospectCount}</td>
+                      <td className="px-4 py-2 text-center">{c.activeProspectCount}</td>
+                      <td className="px-4 py-2 text-center">
+                        <DaysSinceActiveCell days={c.daysSinceActiveProspect} />
+                      </td>
                       <td className="px-4 py-2 text-center">{c.salesCount}</td>
                       <td className="px-4 py-2 text-center">{formatPercent(c.conversion)}</td>
                       <td className="px-4 py-2 text-center">{formatCurrency(c.revenue)}</td>
