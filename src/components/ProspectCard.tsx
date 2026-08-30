@@ -14,6 +14,7 @@ export type ProspectCardData = {
   project?: { name: string } | null;
   unitInterest?: string | null;
   budget?: number | null;
+  estimatedValue?: number | null;
   assignedUser?: { name: string } | null;
   advisor?: { name: string } | null;
   updatedAt: string;
@@ -90,7 +91,7 @@ export default function ProspectCard({
 
       <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
         <span>{prospect.assignedUser?.name || "Sin asignar"}</span>
-        <span className="font-medium text-calume-navy">{formatCurrency(prospect.budget)}</span>
+        <span className="font-medium text-calume-navy">{formatCurrency(prospect.estimatedValue)}</span>
       </div>
 
       <div className="mt-1.5 flex items-center justify-between text-[11px] text-gray-400">
