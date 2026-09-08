@@ -245,6 +245,7 @@ export default function PipelinePage() {
       "Fecha próximo seguimiento": p.nextActionDate ? formatDate(p.nextActionDate) : "",
       "Fecha de ingreso": formatDate(p.entryDate),
       Semáforo: p.alertStatus ? alertLabel(p.alertStatus) : "",
+      "Motivo de pérdida": p.lossReason || "",
       Tags: (p.tags || []).map((t: any) => t.tag.name).join(", "),
     }));
     exportToExcel("calume-pipeline", [{ name: "Pipeline", rows }]);
