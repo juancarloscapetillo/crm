@@ -21,6 +21,15 @@ interface ResetSummary {
   marketing: number;
 }
 
+interface KommoImportSummary {
+  totalRows: number;
+  created: number;
+  skippedDuplicates: { name: string; matchedOn: string }[];
+  skippedUnmappedStage: { name: string; stage: string }[];
+  unassigned: number;
+  projectsUsed: string[];
+}
+
 export default function ImportSection() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -33,6 +42,34 @@ export default function ImportSection() {
   const [resetConfirmText, setResetConfirmText] = useState("");
   const [resetting, setResetting] = useState(false);
   const [resetSummary, setResetSummary] = useState<ResetSummary | null>(null);
+
+  const kommoFileInputRef = useRef<HTMLInputElement>(null);
+  const [kommoFile, setKommoFile] = useState<File | null>(null);
+  const [kommoUploading, setKommoUploading] = useState(false);
+  const [kommoSummary, setKommoSummary] = useState<KommoImportSummary | null>(null);
+
+  async function handleKommoUpload() {
+    if (!kommoFile) return;
+    setKommoUploading(true);
+    setKommoSummary(null);
+
+    const form = new FormData();
+    form.append("file", kommoFile);
+
+    const res = await fetch("/api/admin/import-kommo", { method: "POST", body: form });
+    const data = await res.json();
+    setKommoUploading(false);
+
+    if (!res.ok) {
+      toast.error(data.error || "No se pudo importar el archivo de Kommo");
+      return;
+    }
+
+    setKommoSummary(data.summary);
+    toast.success(`${data.summary.created} de ${data.summary.totalRows} leads importados`);
+    setKommoFile(null);
+    if (kommoFileInputRef.current) kommoFileInputRef.current.value = "";
+  }
 
   async function handleUpload() {
     if (!file) return;
@@ -196,6 +233,60 @@ export default function ImportSection() {
                 <ul className="list-disc list-inside">
                   {summary.skipped.map((s, i) => (
                     <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="card p-4">
+        <h3 className="text-sm font-semibold text-gray-900">Importar leads de Kommo</h3>
+        <p className="text-xs text-gray-500 mt-1">
+          Sube el Excel exportado directamente de Kommo (sin necesidad de acomodarlo primero). Cada lead se marca con
+          el tag <strong>Campaña GL</strong>, la etapa se traduce según el embudo de Kommo (Leads nuevos / Faltan
+          datos → Sin contactar, Listo para atender / En pausa → Informes, Cita / Visita → Visita, Negociación,
+          Apartados → Apartado, Ganados → Ganado), el vendedor se asigna buscando su nombre exacto en "Responsable",
+          y se omite cualquier lead cuyo teléfono o correo ya exista en Calume (evita duplicar leads que el webhook de
+          Meta Ads ya haya creado solo).
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+          <input
+            ref={kommoFileInputRef}
+            type="file"
+            accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            onChange={(e) => setKommoFile(e.target.files?.[0] || null)}
+            className="input text-sm flex-1"
+          />
+          <button onClick={handleKommoUpload} disabled={!kommoFile || kommoUploading} className="btn-gold whitespace-nowrap">
+            <Upload size={14} /> {kommoUploading ? "Importando..." : "Importar"}
+          </button>
+        </div>
+
+        {kommoSummary && (
+          <div className="mt-4 text-xs bg-green-50 text-green-800 border border-green-200 rounded p-3 space-y-1">
+            <div>
+              Leads creados: <strong>{kommoSummary.created} / {kommoSummary.totalRows}</strong>
+            </div>
+            <div>Proyectos usados: {kommoSummary.projectsUsed.join(", ") || "—"}</div>
+            <div>Sin vendedor asignado (no se encontró el "Responsable" en Calume): {kommoSummary.unassigned}</div>
+            {kommoSummary.skippedDuplicates.length > 0 && (
+              <div className="mt-2 text-amber-700">
+                <div className="font-medium">Omitidos por duplicado ({kommoSummary.skippedDuplicates.length}):</div>
+                <ul className="list-disc list-inside">
+                  {kommoSummary.skippedDuplicates.map((s, i) => (
+                    <li key={i}>{s.name} — coincide por {s.matchedOn}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {kommoSummary.skippedUnmappedStage.length > 0 && (
+              <div className="mt-2 text-amber-700">
+                <div className="font-medium">Omitidos por etapa desconocida ({kommoSummary.skippedUnmappedStage.length}):</div>
+                <ul className="list-disc list-inside">
+                  {kommoSummary.skippedUnmappedStage.map((s, i) => (
+                    <li key={i}>{s.name} — etapa "{s.stage}"</li>
                   ))}
                 </ul>
               </div>
