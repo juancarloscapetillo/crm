@@ -125,7 +125,11 @@ export default function DashboardPage() {
               {reportData && (
                 <>
                   <StatCard label="Valor del pipeline" value={formatCurrency(reportData.summary.valorPipeline)} />
-                  <StatCard label="Tiempo promedio de cierre" value={reportData.summary.avgCloseTimeDays !== null ? `${reportData.summary.avgCloseTimeDays.toFixed(1)} días` : "Datos insuficientes"} />
+                  <StatCard
+                    label="Tiempo promedio de cierre"
+                    value={reportData.summary.avgCloseTimeDays !== null ? `${reportData.summary.avgCloseTimeDays.toFixed(1)} días` : "Datos insuficientes"}
+                    hint="Desde que entra hasta que se marca como Ganado. Solo cuenta prospectos ganados."
+                  />
                   <StatCard
                     label="Tiempo de vida del lead"
                     value={reportData.summary.avgLeadLifetimeDays !== null ? `${reportData.summary.avgLeadLifetimeDays.toFixed(1)} días` : "Datos insuficientes"}
