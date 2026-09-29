@@ -126,6 +126,11 @@ export default function DashboardPage() {
                 <>
                   <StatCard label="Valor del pipeline" value={formatCurrency(reportData.summary.valorPipeline)} />
                   <StatCard label="Tiempo promedio de cierre" value={reportData.summary.avgCloseTimeDays !== null ? `${reportData.summary.avgCloseTimeDays.toFixed(1)} días` : "Datos insuficientes"} />
+                  <StatCard
+                    label="Tiempo de vida del lead"
+                    value={reportData.summary.avgLeadLifetimeDays !== null ? `${reportData.summary.avgLeadLifetimeDays.toFixed(1)} días` : "Datos insuficientes"}
+                    hint="Desde que entra hasta que se cierra o hasta hoy, cierre o no"
+                  />
                   <StatCard label="Tiempo promedio sin seguimiento" value={reportData.summary.avgNoFollowHours !== null ? `${reportData.summary.avgNoFollowHours.toFixed(0)} h` : "Datos insuficientes"} />
                 </>
               )}

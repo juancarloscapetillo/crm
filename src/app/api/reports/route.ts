@@ -125,6 +125,15 @@ export async function GET(req: NextRequest) {
     const closeTimes = won.map((p) => (new Date(p.stageEnteredAt).getTime() - new Date(p.entryDate).getTime()) / 86400000);
     const avgCloseTimeDays = closeTimes.length > 0 ? closeTimes.reduce((a, b) => a + b, 0) / closeTimes.length : null;
 
+    // Tiempo de vida del lead en el CRM, cierre o no: para ganados/perdidos,
+    // desde que entró hasta que se cerró (stageEnteredAt); para los activos,
+    // desde que entró hasta ahora — así se ve cuánto "vive" un lead en total.
+    const lifetimeDays = prospects.map((p) => {
+      const end = p.stage === "GANADO" || p.stage === "PERDIDO" ? new Date(p.stageEnteredAt) : new Date();
+      return (end.getTime() - new Date(p.entryDate).getTime()) / 86400000;
+    });
+    const avgLeadLifetimeDays = lifetimeDays.length > 0 ? lifetimeDays.reduce((a, b) => a + b, 0) / lifetimeDays.length : null;
+
     // Tiempo promedio sin seguimiento (horas desde última actividad, solo activos)
     const noFollowHours = active.map((p) => hoursSince(p.lastActivityAt));
     const avgNoFollowHours = noFollowHours.length > 0 ? noFollowHours.reduce((a, b) => a + b, 0) / noFollowHours.length : null;
@@ -167,6 +176,7 @@ export async function GET(req: NextRequest) {
         inversionTotal: totalInvestment,
         cacGeneral: won.length > 0 ? totalInvestment / won.length : null,
         avgCloseTimeDays,
+        avgLeadLifetimeDays,
         avgNoFollowHours,
         asesoresRegistrados: await prisma.advisor.count(),
       },
