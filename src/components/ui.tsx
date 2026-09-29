@@ -3,7 +3,7 @@
 import { AlertStatus, alertColors, alertLabel } from "@/lib/alert";
 import { Stage } from "@prisma/client";
 import { stageColors, stageLabels } from "@/lib/labels";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, Info } from "lucide-react";
 import { useEffect } from "react";
 
 export function PageHeader({
@@ -59,9 +59,15 @@ export function StatCard({
   };
   return (
     <div className="card p-4">
-      <div className="text-xs font-medium text-gray-500">{label}</div>
+      <div className="flex items-center gap-1">
+        <div className="text-xs font-medium text-gray-500">{label}</div>
+        {hint && (
+          <span title={hint} className="text-gray-300 hover:text-gray-500 cursor-help">
+            <Info size={12} />
+          </span>
+        )}
+      </div>
       <div className={`text-2xl font-semibold mt-1 ${accentClasses[accent]}`}>{value}</div>
-      {hint && <div className="text-xs text-gray-400 mt-1">{hint}</div>}
     </div>
   );
 }
