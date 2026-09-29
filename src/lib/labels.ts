@@ -19,6 +19,7 @@ export const lossReasonOptions = [
   "El proyecto no fue de su agrado",
   "Postergó su búsqueda, no le urge",
   "No busca comprar en Mérida",
+  "Nunca respondió",
   "Otro",
 ];
 
