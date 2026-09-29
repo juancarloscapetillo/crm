@@ -65,6 +65,18 @@ export function hoursSince(date: Date | string): number {
   return (Date.now() - new Date(date).getTime()) / HOUR_MS;
 }
 
+export const DAYS_IN_STAGE_WARNING = 10;
+
+/**
+ * Días que lleva un prospecto en su etapa actual (desde stageEnteredAt).
+ * No aplica en Ganado/Perdido: son etapas cerradas, no tiene sentido
+ * alertar sobre cuánto tiempo llevan ahí.
+ */
+export function daysInStage(stageEnteredAt: Date | string, stage: Stage): number | null {
+  if (stage === "GANADO" || stage === "PERDIDO") return null;
+  return Math.floor(hoursSince(stageEnteredAt) / 24);
+}
+
 export const DAYS_WITHOUT_ACTIVE_WARNING = 30;
 
 /**
