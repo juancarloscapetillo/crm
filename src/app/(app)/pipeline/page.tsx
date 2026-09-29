@@ -102,6 +102,10 @@ export default function PipelinePage() {
   const [showUnitPrompt, setShowUnitPrompt] = useState(false);
   const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
   const [unitValue, setUnitValue] = useState("");
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<"7" | "30" | "180" | "365" | "todo" | "personalizado">("todo");
+  const [exportFrom, setExportFrom] = useState("");
+  const [exportTo, setExportTo] = useState("");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
 
@@ -228,8 +232,41 @@ export default function PipelinePage() {
 
   const activeProspect = prospects.find((p) => p.id === activeId);
 
+  const exportPeriodLabels: Record<typeof exportPeriod, string> = {
+    "7": "Última semana",
+    "30": "Último mes",
+    "180": "Últimos 6 meses",
+    "365": "Últimos 12 meses",
+    todo: "Todo el historial",
+    personalizado: "Rango personalizado",
+  };
+
+  function getExportRange(): { start: Date | null; end: Date } {
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    if (exportPeriod === "personalizado") {
+      if (!exportFrom || !exportTo) return { start: null, end };
+      const s = new Date(exportFrom);
+      s.setHours(0, 0, 0, 0);
+      const e = new Date(exportTo);
+      e.setHours(23, 59, 59, 999);
+      return { start: s, end: e };
+    }
+    if (exportPeriod === "todo") return { start: null, end };
+    const days = parseInt(exportPeriod, 10);
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    start.setHours(0, 0, 0, 0);
+    return { start, end };
+  }
+
   function handleExportExcel() {
-    const rows = prospects.map((p: any) => ({
+    const { start, end } = getExportRange();
+    const filtered = prospects.filter((p: any) => {
+      const entered = new Date(p.entryDate).getTime();
+      return (!start || entered >= start.getTime()) && entered <= end.getTime();
+    });
+    const rows = filtered.map((p: any) => ({
       Nombre: p.name,
       Etapa: stageLabels[p.stage as Stage],
       Proyecto: p.project?.name || "",
@@ -249,6 +286,7 @@ export default function PipelinePage() {
       Tags: (p.tags || []).map((t: any) => t.tag.name).join(", "),
     }));
     exportToExcel("calume-pipeline", [{ name: "Pipeline", rows }]);
+    setShowExportModal(false);
   }
 
   return (
@@ -259,7 +297,7 @@ export default function PipelinePage() {
         subtitle="Arrastra las tarjetas para mover a los prospectos entre etapas"
         actions={
           <div className="flex items-center gap-2">
-            <button className="btn-secondary" onClick={handleExportExcel}>
+            <button className="btn-secondary" onClick={() => setShowExportModal(true)}>
               <FileSpreadsheet size={15} /> Exportar Excel
             </button>
             <button className="btn-gold" onClick={() => setShowCreate(true)}>
@@ -502,6 +540,45 @@ export default function PipelinePage() {
             <button className="btn-secondary" onClick={() => setShowUnitPrompt(false)}>Cancelar</button>
             <button className="btn-gold" disabled={!unitValue.trim()} onClick={confirmUnit}>
               Confirmar apartado
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showExportModal} onClose={() => setShowExportModal(false)} title="Exportar Excel">
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">¿Qué periodo quieres exportar? Se filtra por fecha de ingreso del prospecto.</p>
+          <div>
+            <label className="label">Periodo</label>
+            <select className="input" value={exportPeriod} onChange={(e) => setExportPeriod(e.target.value as typeof exportPeriod)}>
+              <option value="7">Última semana</option>
+              <option value="30">Último mes</option>
+              <option value="180">Últimos 6 meses</option>
+              <option value="365">Últimos 12 meses</option>
+              <option value="todo">Todo el historial</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+          {exportPeriod === "personalizado" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Desde</label>
+                <input type="date" className="input" value={exportFrom} onChange={(e) => setExportFrom(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Hasta</label>
+                <input type="date" className="input" value={exportTo} onChange={(e) => setExportTo(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <button className="btn-secondary" onClick={() => setShowExportModal(false)}>Cancelar</button>
+            <button
+              className="btn-gold"
+              disabled={exportPeriod === "personalizado" && (!exportFrom || !exportTo)}
+              onClick={handleExportExcel}
+            >
+              <FileSpreadsheet size={15} /> Exportar {exportPeriodLabels[exportPeriod].toLowerCase()}
             </button>
           </div>
         </div>
