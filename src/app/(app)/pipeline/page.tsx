@@ -37,6 +37,8 @@ type PipelineFilters = {
   company?: string;
   vendedor?: string;
   source?: string;
+  from?: string;
+  to?: string;
 };
 
 function DroppableColumn({ id, collapsed, children }: { id: string; collapsed?: boolean; children: React.ReactNode }) {
@@ -107,7 +109,7 @@ export default function PipelinePage() {
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo] = useState("");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source);
+  const hasFilters = !!(filters.project || filters.tag || filters.advisor || filters.company || filters.vendedor || filters.source || filters.from || filters.to);
 
   async function handleCreate(values: ProspectFormValues) {
     const res = await fetch("/api/prospects", {
@@ -361,6 +363,24 @@ export default function PipelinePage() {
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="label">Entró desde</label>
+            <input
+              type="date"
+              className="input"
+              value={filters.from || ""}
+              onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value || undefined }))}
+            />
+          </div>
+          <div>
+            <label className="label">Entró hasta</label>
+            <input
+              type="date"
+              className="input"
+              value={filters.to || ""}
+              onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value || undefined }))}
+            />
           </div>
           {hasFilters && (
             <button className="btn-secondary text-xs" onClick={() => setFilters({})}>
