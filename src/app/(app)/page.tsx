@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts";
-import { Download, FileSpreadsheet, Printer, FileText, Home, Handshake, Lock, Trophy } from "lucide-react";
+import { Download, FileSpreadsheet, Printer, FileText, Home, Handshake, Lock, Trophy, Info } from "lucide-react";
 import { PageHeader, StatCard, EmptyState } from "@/components/ui";
 import FilterBar, { Filters } from "@/components/FilterBar";
 import { useCatalogs, useFetch } from "@/lib/hooks";
@@ -294,8 +294,16 @@ function ConversionFunnel({ funnel }: { funnel: DashboardData["funnel"] }) {
   const hasData = funnel.some((f) => f.total > 0);
   return (
     <div className="card p-5 break-inside-avoid">
-      <h3 className="text-base font-bold text-gray-900">Embudo de conversión</h3>
-      <p className="text-xs text-gray-500 mb-4">Conversión por etapa y acumulada</p>
+      <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5">
+        Embudo de conversión
+        <span
+          title="Cuenta cuántos prospectos LLEGARON a cada etapa o más allá en algún momento de su historia (según la etapa más avanzada que alcanzaron), no cuántos están ahí ahora mismo. Por eso estos números no coinciden con las columnas del Pipeline, que sí muestran la etapa actual."
+          className="text-gray-300 hover:text-gray-500 cursor-help"
+        >
+          <Info size={13} />
+        </span>
+      </h3>
+      <p className="text-xs text-gray-500 mb-4">Conversión por etapa y acumulada — no es lo mismo que el conteo actual del Pipeline</p>
       {!hasData ? (
         <EmptyState title="Sin datos en este periodo" />
       ) : (
